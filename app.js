@@ -6,6 +6,7 @@ const EMAIL = "ethanntann.dev@gmail.com";
 const GITHUB = "https://github.com/ethanntann";
 const LINKEDIN = "https://www.linkedin.com/in/ethanntann";
 const RESUME_PDF = "assets/Ethan-Tan-Resume.pdf";
+const SITE = "https://ethan-tan.dev/";
 
 // Duotone grades: shadow, mid, highlight
 const GRADES = {
@@ -1056,13 +1057,13 @@ function toast(msg) {
 }
 function exportContact() {
   const vcf = ["BEGIN:VCARD", "VERSION:3.0", "N:Tan;Ethan;;;", "FN:Ethan Tan", "TITLE:Solo developer",
-    `EMAIL;TYPE=INTERNET:${EMAIL}`, `URL:${GITHUB}`, `URL:${LINKEDIN}`, "ADR;TYPE=HOME:;;;Cleveland;OH;;USA", "END:VCARD"].join("\r\n");
+    `EMAIL;TYPE=INTERNET:${EMAIL}`, `URL:${SITE}`, `URL:${GITHUB}`, `URL:${LINKEDIN}`, "ADR;TYPE=HOME:;;;Cleveland;OH;;USA", "END:VCARD"].join("\r\n");
   const url = URL.createObjectURL(new Blob([vcf], { type: "text/vcard" }));
   download(url, "Ethan-Tan.vcf"); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function sharePortfolio() {
-  const url = `${location.origin}${location.pathname}`;
-  const data = { title: "Ethan Tan · Portfolio", text: "Ethan Tan: developer and video editor. Built like an editing app.", url };
+  const url = SITE;
+  const data = { title: "Ethan Tan · Portfolio", text: "Ethan Tan: solo developer, open to new-grad SWE roles. Built like an editing app.", url };
   if (navigator.share) navigator.share(data).catch(() => {});
   else navigator.clipboard?.writeText(url).then(() => toast("Link copied"), () => toast(url));
 }

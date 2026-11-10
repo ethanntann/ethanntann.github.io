@@ -270,7 +270,6 @@ body.resizing canvas { pointer-events: none; }
 .viewer.idle .transport, .viewer.idle .vslider { opacity: 0; pointer-events: none; }
 .viewer.idle .transport { transform: translate(-50%, 6px); }
 .viewer.idle { cursor: none; }
-@media (hover: none) { .viewer.idle .transport, .viewer.idle .vslider { opacity: 1; pointer-events: auto; } }
 
 /* fx switch */
 .switch { position: relative; width: 30px; height: 17px; }
@@ -548,4 +547,24 @@ noscript ~ * .tv-back, .tv-back { margin: 0 0 24px; font-size: 14px; }
   .phone .fx-pop .switch { transform: scale(1.25); transform-origin: left center; }
   .phone .swatch { height: 44px; }
   .phone .fx-pop .ghost { padding: 14px 0 4px; font-size: 13px; }
+}
+
+/* phone: full-screen button on the monitor; it and the slider fade when idle, a tap brings them back */
+.fs-btn { display: none; }
+@media (max-width: 860px) {
+  .phone .fs-btn { display: grid; place-items: center; position: absolute; right: 10px; bottom: 10px; z-index: 4; width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(6,8,6,.75); color: #e6e8dc; transition: opacity .5s ease; }
+  .fs-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .fs-btn .fs-out, .monitor.max .fs-btn .fs-in { display: none; }
+  .monitor.max .fs-btn .fs-out { display: block; }
+  .viewer.idle .fs-btn { opacity: 0; pointer-events: none; }
+  .phone .vslider { max-height: 150px; height: calc(100% - 70px); }
+  html.fs, html.fs body { overflow: hidden; }
+  /* full screen: landscape. If the phone is still upright, the monitor is turned sideways. */
+  .phone .monitor.max .card-title { font-size: clamp(40px, 16cqh, 96px); }
+  .phone .monitor.max .vslider { max-height: 200px; top: 50%; transform: translateY(-50%); height: 60%; right: 16px; }
+  .phone .monitor.max .fs-btn { right: 16px; bottom: 16px; }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .phone .monitor.max { inset: auto; top: 0; left: 0; width: 100vh; width: 100dvh; height: 100vw; transform-origin: top left; transform: translateX(100vw) rotate(90deg); }
 }

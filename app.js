@@ -735,7 +735,7 @@ function makeTex() {
 let dpr = 1;
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const r = canvas.getBoundingClientRect();
+  const r = { width: canvas.clientWidth, height: canvas.clientHeight };
   canvas.width = Math.max(2, Math.round(r.width * dpr));
   canvas.height = Math.max(2, Math.round(r.height * dpr));
   if (gl) { gl.viewport(0, 0, canvas.width, canvas.height); sizeTargets(); }
@@ -1144,7 +1144,10 @@ function bindControls() {
   const vs = $("#vslider"), track = $(".vs-track", vs);
   vs.addEventListener("pointerdown", (e) => {
     vs.setPointerCapture(e.pointerId);
-    const set = (ev) => { const r = track.getBoundingClientRect(); setDaylight(1 - (ev.clientY - r.top) / r.height); };
+    const set = (ev) => {
+      const r = track.getBoundingClientRect();
+      setDaylight(monitorTurned() ? (ev.clientX - r.left) / r.width : 1 - (ev.clientY - r.top) / r.height);
+    };
     set(e);
     const up = () => { vs.removeEventListener("pointermove", set); vs.removeEventListener("pointerup", up); };
     vs.addEventListener("pointermove", set); vs.addEventListener("pointerup", up);
@@ -1251,7 +1254,29 @@ function setPlayIcons(on) {
 function play() { endNudge(); state.playing = true; setPlayIcons(true); }
 function pause() { state.playing = false; setPlayIcons(false); }
 function togglePlay() { state.playing ? pause() : play(); }
-function toggleFull() { $("#monitorPanel").classList.toggle("max"); requestAnimationFrame(resize); }
+let nativeFS = false;
+function monitorTurned() { const m = $("#monitorPanel"); return m.classList.contains("max") && getComputedStyle(m).transform !== "none"; }
+async function toggleFull() {
+  const m = $("#monitorPanel"), on = !m.classList.contains("max");
+  m.classList.toggle("max", on);
+  document.documentElement.classList.toggle("fs", on);
+  $("#fsBtn").setAttribute("aria-label", on ? "Exit full screen" : "Full screen");
+  if (isPhone && on) {
+    // Android: real full screen, locked to landscape. iPhone has neither, so CSS turns the monitor sideways.
+    try { if (m.requestFullscreen) { await m.requestFullscreen({ navigationUI: "hide" }); nativeFS = true; } } catch (_) {}
+    try { await screen.orientation.lock("landscape"); } catch (_) {}
+  } else if (!on) {
+    try { screen.orientation.unlock(); } catch (_) {}
+    if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch (_) {} }
+    nativeFS = false;
+  }
+  requestAnimationFrame(resize); setTimeout(resize, 250);
+  wake();
+}
+// leaving the browser's own full screen (back gesture) leaves ours too
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement && nativeFS && $("#monitorPanel").classList.contains("max")) { nativeFS = false; toggleFull(); }
+});
 
 // ---------- loop ----------
 let last = performance.now();
@@ -1353,7 +1378,8 @@ let idleTimer = 0;
 let tabbing = false;
 const lastPointer = { x: -1, y: -1 };
 addEventListener("pointermove", (e) => { lastPointer.x = e.clientX; lastPointer.y = e.clientY; }, { passive: true, capture: true });
-document.documentElement.addEventListener("pointerleave", () => { lastPointer.x = lastPointer.y = -1; });   // true only while someone is moving around with Tab; any pointer use clears it
+document.documentElement.addEventListener("pointerleave", () => { lastPointer.x = lastPointer.y = -1; });
+["pointerup", "pointercancel"].forEach((ev) => addEventListener(ev, (e) => { if (e.pointerType !== "mouse") lastPointer.x = lastPointer.y = -1; }, true));   // true only while someone is moving around with Tab; any pointer use clears it
 addEventListener("keydown", (e) => { if (e.key === "Tab") tabbing = true; }, true);
 ["pointerdown", "pointermove"].forEach((ev) => addEventListener(ev, () => { tabbing = false; }, true));
 // A mouse click leaves the button focused, and the next key press (Space, F) would make that
@@ -1369,8 +1395,9 @@ function controlsBusy() {
   if (document.body.classList.contains("resizing") || document.body.classList.contains("trimming")) return true;
   if (tabbing && v.contains(document.activeElement)) return true;             // keyboard user is on a control
   // pointer resting on a control (checked by position: a faded control can't report :hover)
-  return [".transport", "#vslider"].some((sel) => {
+  return [".transport", "#vslider", "#fsBtn"].some((sel) => {
     const r = $(sel).getBoundingClientRect(), p = lastPointer;
+    if (p.x < 0 || !r.width) return false;   // no pointer, or the control isn't shown
     return p.x >= r.left - 8 && p.x <= r.right + 8 && p.y >= r.top - 8 && p.y <= r.bottom + 8;
   });
 }
@@ -1543,8 +1570,7 @@ function bindPhone() {
   $("#fxDone").addEventListener("click", () => showTab("fx", false));
   // tapping outside a sheet closes it
   $("#windows").addEventListener("click", (e) => { if (isPhone && e.target.id === "windows") $$(".win").forEach((w) => w.remove()); });
-  // full screen on a phone has no controls on top: a tap on the picture exits
-  $("#monitorPanel").addEventListener("click", () => { if (isPhone && $("#monitorPanel").classList.contains("max")) toggleFull(); });
+  $("#fsBtn").addEventListener("click", (e) => { e.stopPropagation(); toggleFull(); });
   phoneMQ.addEventListener("change", applyPhone);
 }
 function applyPhone() {
@@ -1554,7 +1580,6 @@ function applyPhone() {
   (isPhone ? $("#app") : $("#viewer")).appendChild($("#fxPop"));   // on a phone the effects panel is a sheet over the page
   if (isPhone) {
     showTab("fx", false);
-    $("#monitorPanel").classList.remove("max");
     buildStrip();
     if (state.active >= 0) { renderPhoneCard(CLIPS[state.active]); markStrip(state.active, false); }
   }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://babyrico.goatcounter.com; media-src 'self'; connect-src 'self' https://babyrico.goatcounter.com; object-src 'none'; base-uri 'self'; form-action 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <link rel="canonical" href="https://ethanntann.github.io/" />
@@ -24,7 +24,7 @@
 <title>Ethan's Editor · Ethan Tan</title>
 <meta name="description" content="Ethan Tan: solo developer open to new-grad SWE roles. Built Gamertaggd (iOS, live on the App Store) and Salience (a Fortnite auto-clipper that learns your taste). CS at Case Western, 2027." />
 <link rel="stylesheet" href="fonts.css?v=1" />
-<link rel="stylesheet" href="styles.css?v=17" />
+<link rel="stylesheet" href="styles.css?v=18" />
 <noscript><style>#app, .skip-link { display: none !important; } .text-version { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; clip: auto !important; clip-path: none !important; white-space: normal !important; padding: 40px max(24px, calc(50vw - 360px)); line-height: 1.6; }</style></noscript>
 </head>
 <body>
@@ -111,6 +111,7 @@
       <button class="menu" data-menu="window" aria-haspopup="menu" aria-expanded="false">Window</button>
       <button class="menu" data-menu="settings" aria-haspopup="menu" aria-expanded="false">Settings</button>
       <button class="menu" data-menu="help" aria-haspopup="menu" aria-expanded="false">Help</button>
+      <button class="menu more ph-only" data-menu="window" aria-haspopup="menu" aria-expanded="false" aria-label="More">⋯</button>
     </nav>
     <nav class="nav" id="nav" aria-label="Sections">
       <button data-go="#intro" data-ids="intro">About</button>
@@ -188,6 +189,35 @@
     <div class="tl-hit" id="tracks"><div class="playhead" id="playhead"><i></i></div></div>
   </section>
 
+  <!-- phone layout: control row, clip strip, text panel, tab bar (hidden on desktop) -->
+  <div class="pbar ph-only" id="pbar">
+    <span class="mono ptc" id="ptc">00:00</span>
+    <span class="pmid">
+      <button data-pact="prev" aria-label="Previous clip"><svg viewBox="0 0 16 16"><path d="M3 3v10M13 3 6 8l7 5z"/></svg></button>
+      <button data-pact="play" class="pplay" id="pPlay" aria-label="Play"><svg viewBox="0 0 16 16" id="pPlayIcon"><path d="M4 2.5v11L13 8z"/></svg></button>
+      <button data-pact="next" aria-label="Next clip"><svg viewBox="0 0 16 16"><path d="M13 3v10M3 3l7 5-7 5z"/></svg></button>
+    </span>
+    <span class="plight" role="group" aria-label="Time of day">
+      <button id="pNight" aria-label="Night" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.5 4.5 0 0 0 6.5 6.5z"/></svg></button>
+      <button id="pDay" aria-label="Day" aria-pressed="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3"/></svg></button>
+    </span>
+  </div>
+  <div class="pstrip ph-only">
+    <div class="strip" id="strip" aria-label="Clips"></div>
+    <div class="sph" aria-hidden="true"></div>
+    <div class="sdots" id="stripDots" aria-hidden="true"></div>
+  </div>
+  <div class="pbody ph-only" id="pbody">
+    <div class="pcard" id="pcard"></div>
+    <details class="pdet" id="pdet"><summary><span>Details</span><span class="mono dim">more ▾</span></summary></details>
+  </div>
+  <nav class="ptabs ph-only" id="ptabs" aria-label="Sections">
+    <button data-go="#intro" data-ids="intro"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>About</button>
+    <button data-go="#gamertaggd" data-ids="gamertaggd salience"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5M16 4v5"/></svg>Projects</button>
+    <button data-go="#experience" data-ids="experience"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3"/></svg>Experience</button>
+    <button data-go="#contact" data-ids="contact"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 4z"/></svg>Contact</button>
+  </nav>
+
   <div id="windows"></div>
   <div id="dropdown" class="dropdown hidden" role="menu"></div>
 </div>
@@ -195,6 +225,6 @@
 <!-- Analytics: GoatCounter, cookie-free and privacy-friendly. Dashboard: https://babyrico.goatcounter.com
      It ignores visits from localhost, so only the live site is counted. -->
 <script data-goatcounter="https://babyrico.goatcounter.com/count" async src="https://gc.zgo.at/count.v4.js" crossorigin="anonymous" integrity="sha384-nRw6qfbWyJha9LhsOtSb2YJDyZdKvvCFh0fJYlkquSFjUxp9FVNugbfy8q1jdxI+"></script>
-<script src="app.js?v=29"></script>
+<script src="app.js?v=30"></script>
 </body>
 </html>

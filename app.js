@@ -839,8 +839,17 @@ function renderOverlay(clip) {
   const o = $("#overlay");
   if (!clip.card) { o.innerHTML = ""; return; }
   const c = clip.card;
-  const personal = clip.id === "intro" && state.take === "personal";
   const n = c.title.length;
+  o.innerHTML = `
+    <h1 class="card-title${c.small ? " sm" : ""}">${c.title.map((l, i) => `<span class="rise" style="--i:${i}">${l}</span>`).join("<br>")}</h1>
+    ${cardBody(clip, n)}`;
+  bindCard(o);
+  if (isPhone) renderPhoneCard(clip);
+}
+// takes, text and links for a clip; n staggers the rise animation after the title
+function cardBody(clip, n) {
+  const c = clip.card;
+  const personal = clip.id === "intro" && state.take === "personal";
   const takes = clip.id === "intro" ? `<div class="takes rise" style="--i:${n}" role="group" aria-label="About take">
       <button data-take="work" aria-pressed="${!personal}">Work</button><button data-take="personal" aria-pressed="${personal}">Off the clock</button></div>` : "";
   const body = personal
@@ -848,11 +857,11 @@ function renderOverlay(clip) {
        <ul class="hobbies rise" style="--i:${n + 2}">${PERSONAL.hobbies.map(([h, t]) => `<li><b>${h}</b><span>${t}</span></li>`).join("")}</ul>`
     : `${c.sub ? `<div class="card-sub rise" style="--i:${n + 1}">${c.sub}</div>` : ""}
        <div class="card-links rise" style="--i:${n + 2}">${c.links.map(([t, h], i) => linkHTML(t, h, i)).join("")}</div>`;
-  o.innerHTML = `
-    <h1 class="card-title${c.small ? " sm" : ""}">${c.title.map((l, i) => `<span class="rise" style="--i:${i}">${l}</span>`).join("<br>")}</h1>
-    ${takes}${body}`;
-  bindLinks(o);
-  $$("[data-take]", o).forEach((b) => b.addEventListener("click", () => setTake(b.dataset.take)));
+  return takes + body;
+}
+function bindCard(root) {
+  bindLinks(root);
+  $$("[data-take]", root).forEach((b) => b.addEventListener("click", () => setTake(b.dataset.take)));
 }
 // The About clip has two takes. "Off the clock" warms the light toward evening; "Work" puts it back.
 const TAKE_AT = 0.5;   // below this on the slider, About shows "Off the clock"
@@ -917,7 +926,8 @@ function activate(i) {
   setGrade(clip.grade, prev < 0);
   renderOverlay(clip);
   renderInfo(clip);
-  $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.ids.split(" ").includes(clip.id)));
+  $$("#nav button, #ptabs button").forEach((b) => b.classList.toggle("on", b.dataset.ids.split(" ").includes(clip.id)));
+  if (isPhone) centreStrip(i, prev >= 0);
   $$(".clip").forEach((el) => el.classList.toggle("sel", +el.dataset.i === i));
   if (location.hash.slice(1) !== clip.id) history.replaceState(null, "", "#" + clip.id);
   track("clip:" + clip.id);
@@ -952,6 +962,7 @@ function openWindow({ id, title, html, x, y, w }) {
   $(".min", win).addEventListener("click", () => win.classList.toggle("min"));
   $(".zoom", win).addEventListener("click", () => { win.style.left = "4vw"; win.style.top = "44px"; win.style.width = "92vw"; });
   bindLinks(win);
+  sheetSwipe(win);
   // drag
   const bar = $(".win-bar", win);
   bar.addEventListener("pointerdown", (e) => {
@@ -1069,8 +1080,9 @@ function openMenu(btn) {
   $$(".menu").forEach((m) => { m.classList.toggle("open", m === btn); m.setAttribute("aria-expanded", m === btn); });
   dd.innerHTML = items.map((it, i) => it === "-" ? `<div class="dd-sep" role="separator"></div>` : `<button class="dd-item" role="menuitem" data-i="${i}"><span>${it[0]}</span><span class="dim mono">${it[2] || ""}</span></button>`).join("");
   const r = btn.getBoundingClientRect();
-  dd.style.left = r.left + "px"; dd.style.top = r.bottom + 4 + "px";
+  dd.style.top = r.bottom + 4 + "px";
   dd.classList.remove("hidden");
+  dd.style.left = Math.max(8, Math.min(r.left, innerWidth - dd.offsetWidth - 8)) + "px";
   $$(".dd-item", dd).forEach((d) => d.addEventListener("click", () => { closeMenu(); items[+d.dataset.i][1](); }));
 }
 function closeMenu() {
@@ -1099,6 +1111,7 @@ function setDaylight(v) {
   const d = state.daylight;
   $("#vsVal").textContent = d > 0.8 ? "DAY" : d > 0.55 ? "GOLD" : d > 0.3 ? "DUSK" : "NIGHT";
   $("#vslider").setAttribute("aria-valuenow", Math.round(d * 100));
+  $("#pDay").setAttribute("aria-pressed", d >= TAKE_AT); $("#pNight").setAttribute("aria-pressed", d < TAKE_AT);
   if (CLIPS[state.active]?.id === "intro" && takeFor(d) !== state.take) setTake(takeFor(d), true);
 }
 function toggleDither() { setAmount(state.amount > 0.5 ? 0 : 1); }
@@ -1217,8 +1230,12 @@ function bindControls() {
 }
 
 const ICON_PLAY = '<path d="M4 2.5v11L13 8z"/>', ICON_PAUSE = '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>';
-function play() { endNudge(); state.playing = true; $("#playIcon").innerHTML = ICON_PAUSE; $("#playBtn").setAttribute("aria-label", "Pause"); }
-function pause() { state.playing = false; $("#playIcon").innerHTML = ICON_PLAY; $("#playBtn").setAttribute("aria-label", "Play"); }
+function setPlayIcons(on) {
+  $("#playIcon").innerHTML = $("#pPlayIcon").innerHTML = on ? ICON_PAUSE : ICON_PLAY;
+  ["#playBtn", "#pPlay"].forEach((s) => $(s).setAttribute("aria-label", on ? "Pause" : "Play"));
+}
+function play() { endNudge(); state.playing = true; setPlayIcons(true); }
+function pause() { state.playing = false; setPlayIcons(false); }
 function togglePlay() { state.playing ? pause() : play(); }
 function toggleFull() { $("#monitorPanel").classList.toggle("max"); requestAnimationFrame(resize); }
 
@@ -1308,16 +1325,16 @@ function startNudge() {
   setTimeout(() => {
     if (localStorage.getItem("reel-seen") || state.playing) return;
     nudge.on = true; wake();
-    $("#playBtn").classList.add("nudge");
+    $("#playBtn").classList.add("nudge"); $("#pPlay").classList.add("nudge");
     setTimeout(endNudge, 7000);   // three pulses, then it stops on its own
   }, 2500);
 }
 function endNudge() {
   safeStore("reel-seen", "1");
   if (!nudge.on) return;
-  nudge.on = false; $("#playBtn").classList.remove("nudge");
+  nudge.on = false; $("#playBtn").classList.remove("nudge"); $("#pPlay").classList.remove("nudge");
 }
-["#playBtn", "#vslider", ".timeline", "#nav"].forEach((sel) => $(sel)?.addEventListener("pointerdown", endNudge));
+["#playBtn", "#vslider", ".timeline", "#nav", "#pbar", "#strip", "#ptabs"].forEach((sel) => $(sel)?.addEventListener("pointerdown", endNudge));
 let idleTimer = 0;
 let tabbing = false;
 const lastPointer = { x: -1, y: -1 };
@@ -1386,6 +1403,7 @@ function render(now) {
   // UI clocks
   const tcs = tc(state.t);
   $("#tc").textContent = tcs;
+  if (isPhone) tickPhone();
   $("#playhead").style.left = (state.t / VIEW) * 100 + "%";
 
   if (gl && prog) {
@@ -1439,6 +1457,107 @@ function render(now) {
 }
 function loop(now) { render(now); requestAnimationFrame(loop); }
 
+// ---------- phone layout ----------
+// On a phone the editor is stacked like a mobile video editor: the monitor on top, a control
+// row, a strip of clips you swipe under a fixed playhead, the clip's text on a solid panel,
+// and a tab bar for the four sections. Floating windows become sheets.
+const phoneMQ = matchMedia("(max-width: 860px)");
+let isPhone = phoneMQ.matches;
+const mmss = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+function renderPhoneCard(clip) {
+  const i = clip.info, el = $("#pcard");
+  el.innerHTML = `<div class="pkick rise" style="--i:0">${i.icon ? `<img src="${i.icon}" alt="">` : ""}<span>${i.sub}</span></div>${cardBody(clip, 1)}`;
+  bindCard(el);
+}
+function buildStrip() {
+  $("#strip").innerHTML = CLIPS.map((c, i) => `<button class="sc" data-i="${i}" style="background-image:url(${c.thumb})" aria-label="${c.label}"><span>${c.label}</span><i></i></button>`).join("");
+  $("#stripDots").innerHTML = CLIPS.map(() => "<i></i>").join("");
+  $$("#strip .sc").forEach((b) => b.addEventListener("click", () => jumpTo(+b.dataset.i)));
+}
+let stripTarget = null, stripTimer = 0, lastShown = -1;
+function centreStrip(i, smooth) {
+  const strip = $("#strip"), b = strip.children[i];
+  $$("#strip .sc").forEach((el, j) => el.classList.toggle("on", j === i));
+  $$("#stripDots i").forEach((el, j) => el.classList.toggle("on", j === i));
+  if (!b) return;
+  stripTarget = i;
+  strip.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - strip.clientWidth / 2, behavior: smooth && !reduceMotion ? "smooth" : "auto" });
+  if (lastShown !== i) { lastShown = i; $("#pbody").scrollTop = 0; }
+}
+function nearestInStrip() {
+  const strip = $("#strip"), mid = strip.scrollLeft + strip.clientWidth / 2;
+  let best = 0, bd = Infinity;
+  [...strip.children].forEach((b, j) => { const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = j; } });
+  return best;
+}
+function tickPhone() {
+  const c = CLIPS[state.active];
+  $("#ptc").textContent = mmss(state.t) + " / " + mmss(TOTAL);
+  const on = $("#strip .sc.on");
+  if (on && c) on.style.setProperty("--p", Math.max(0, Math.min(1, (state.t - c.start) / c.dur)));
+}
+// ease the light instead of jumping, so night and day cross-fade like the slider
+let lightAnim = 0;
+function lightTo(v) {
+  cancelAnimationFrame(lightAnim);
+  const from = state.daylight, t0 = performance.now(), dur = reduceMotion ? 1 : 900;
+  const step = (now) => { const k = Math.min(1, (now - t0) / dur); setDaylight(lerp(from, v, ease(k))); if (k < 1) lightAnim = requestAnimationFrame(step); };
+  lightAnim = requestAnimationFrame(step);
+}
+function sheetSwipe(win) {
+  const bar = $(".win-bar", win);
+  bar.addEventListener("pointerdown", (e) => {
+    if (!isPhone || e.target.closest("button")) return;
+    const y0 = e.clientY;
+    win.style.transition = "none";
+    const move = (ev) => { win.style.transform = `translateY(${Math.max(0, ev.clientY - y0)}px)`; };
+    const up = (ev) => {
+      bar.removeEventListener("pointermove", move); bar.removeEventListener("pointerup", up); bar.removeEventListener("pointercancel", up);
+      win.style.transition = "transform .2s ease";
+      if (ev.type === "pointerup" && ev.clientY - y0 > 90) { win.style.transform = "translateY(100%)"; setTimeout(() => win.remove(), 200); }
+      else win.style.transform = "";
+    };
+    bar.addEventListener("pointermove", move); bar.addEventListener("pointerup", up); bar.addEventListener("pointercancel", up);
+  });
+}
+function bindPhone() {
+  buildStrip();
+  $$("#pbar [data-pact]").forEach((b) => b.addEventListener("click", () => ({
+    prev: () => jumpTo(state.active - 1), next: () => jumpTo(state.active + 1), play: togglePlay,
+  })[b.dataset.pact]()));
+  $("#pDay").addEventListener("click", () => lightTo(Math.max(START_LIGHT, state.daylight >= TAKE_AT ? state.daylight : 0)));
+  $("#pNight").addEventListener("click", () => lightTo(0.15));
+  $$("#ptabs button").forEach((b) => b.addEventListener("click", () => jumpTo(CLIPS.findIndex((c) => c.id === b.dataset.go.slice(1)))));
+  // swiping the strip: once it settles, the clip under the playhead becomes the active one
+  $("#strip").addEventListener("scroll", () => {
+    clearTimeout(stripTimer);
+    stripTimer = setTimeout(() => {
+      const i = nearestInStrip();
+      if (stripTarget != null) { if (i === stripTarget) stripTarget = null; return; }
+      if (i !== state.active) jumpTo(i);
+    }, 140);
+  }, { passive: true });
+  ["touchstart", "pointerdown", "wheel"].forEach((ev) => $("#strip").addEventListener(ev, () => { stripTarget = null; }, { passive: true }));
+  // tapping outside a sheet closes it
+  $("#windows").addEventListener("click", (e) => { if (isPhone && e.target.id === "windows") $$(".win").forEach((w) => w.remove()); });
+  // full screen on a phone has no controls on top: a tap on the picture exits
+  $("#monitorPanel").addEventListener("click", () => { if (isPhone && $("#monitorPanel").classList.contains("max")) toggleFull(); });
+  phoneMQ.addEventListener("change", applyPhone);
+}
+function applyPhone() {
+  isPhone = phoneMQ.matches;
+  document.body.classList.toggle("phone", isPhone);
+  (isPhone ? $("#pdet") : $(".side")).appendChild($("#info"));
+  if (isPhone) {
+    showTab("fx", false);
+    $("#monitorPanel").classList.remove("max");
+    if (state.active >= 0) { renderPhoneCard(CLIPS[state.active]); centreStrip(state.active, false); }
+  }
+  requestAnimationFrame(resize);
+}
+
+
 // ---------- boot ----------
 
 // ---------- init ----------
@@ -1448,6 +1567,8 @@ buildSwatches();
 bindControls();
 bindPanels();
 bindMixer();
+bindPhone();
+applyPhone();
 wake();
 startNudge();
 const glOk = initGL();
@@ -1456,5 +1577,6 @@ setAmount(1);
 setDaylight(START_LIGHT);
 const startIdx = Math.max(0, CLIPS.findIndex((c) => c.id === location.hash.slice(1)));
 jumpTo(startIdx);
+if (isPhone) centreStrip(state.active, false);
 resize();
 requestAnimationFrame(loop);

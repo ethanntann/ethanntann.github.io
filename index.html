@@ -24,7 +24,7 @@
 <title>Ethan's Editor · Ethan Tan</title>
 <meta name="description" content="Ethan Tan: solo developer open to new-grad SWE roles. Built Gamertaggd (iOS, live on the App Store) and Salience (a Fortnite auto-clipper that learns your taste). CS at Case Western, 2027." />
 <link rel="stylesheet" href="fonts.css?v=1" />
-<link rel="stylesheet" href="styles.css?v=18" />
+<link rel="stylesheet" href="styles.css?v=19" />
 <noscript><style>#app, .skip-link { display: none !important; } .text-version { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; clip: auto !important; clip-path: none !important; white-space: normal !important; padding: 40px max(24px, calc(50vw - 360px)); line-height: 1.6; }</style></noscript>
 </head>
 <body>
@@ -197,9 +197,12 @@
       <button data-pact="play" class="pplay" id="pPlay" aria-label="Play"><svg viewBox="0 0 16 16" id="pPlayIcon"><path d="M4 2.5v11L13 8z"/></svg></button>
       <button data-pact="next" aria-label="Next clip"><svg viewBox="0 0 16 16"><path d="M13 3v10M3 3l7 5-7 5z"/></svg></button>
     </span>
+    <span class="pright">
+    <button id="pSound" class="psound" aria-pressed="false" aria-label="Sound off"></button>
     <span class="plight" role="group" aria-label="Time of day">
       <button id="pNight" aria-label="Night" aria-pressed="false"><svg viewBox="0 0 16 16"><path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.5 4.5 0 0 0 6.5 6.5z"/></svg></button>
       <button id="pDay" aria-label="Day" aria-pressed="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3"/></svg></button>
+    </span>
     </span>
   </div>
   <div class="pstrip ph-only">
@@ -225,6 +228,6 @@
 <!-- Analytics: GoatCounter, cookie-free and privacy-friendly. Dashboard: https://babyrico.goatcounter.com
      It ignores visits from localhost, so only the live site is counted. -->
 <script data-goatcounter="https://babyrico.goatcounter.com/count" async src="https://gc.zgo.at/count.v4.js" crossorigin="anonymous" integrity="sha384-nRw6qfbWyJha9LhsOtSb2YJDyZdKvvCFh0fJYlkquSFjUxp9FVNugbfy8q1jdxI+"></script>
-<script src="app.js?v=30"></script>
+<script src="app.js?v=31"></script>
 </body>
 </html>

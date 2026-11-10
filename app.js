@@ -240,9 +240,17 @@ const mixer = { on: false, vol: Math.max(0, Math.min(1, saved.vol)), amb: { mute
 const sound = { els: {} };
 function saveMixer() { safeStore("reel-mixer", JSON.stringify(mixer)); }
 function audible() { return mixer.on && !mixer.amb.mute; }
-function ensureSound() {   // created on the first click that turns sound on, as browsers require
+// Levels go through Web Audio gain nodes: iPhones ignore an audio element's volume.
+function ensureSound() {   // created on the first tap that turns sound on, as browsers require
+  if (!sound.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) sound.ctx = new AC(); }
+  if (sound.ctx && sound.ctx.state === "suspended") sound.ctx.resume();
   for (const [k, src] of Object.entries(SOUND.amb)) if (src && !sound.els[k]) {
-    const a = new Audio(src); a.loop = true; a.volume = 0; a.preload = "auto"; sound.els[k] = a;
+    const a = new Audio(src); a.loop = true; a.preload = "auto";
+    const el = { a, v: 0, g: null };
+    if (sound.ctx) { el.g = sound.ctx.createGain(); el.g.gain.value = 0; sound.ctx.createMediaElementSource(a).connect(el.g).connect(sound.ctx.destination); }
+    else a.volume = 0;
+    a.play().then(() => { if (el.v < 0.001) a.pause(); }).catch(() => {});   // unlocks playback inside the tap (silent: level 0)
+    sound.els[k] = el;
   }
 }
 function tickSound(dt) {
@@ -250,7 +258,8 @@ function tickSound(dt) {
   const clip = CLIPS[state.active]; if (!clip) return;
   const here = AMB_FOR_SCENE[clip.scene] || "window";
   const live = audible() && state.playing;
-  for (const [key, a] of Object.entries(sound.els)) {
+  for (const [key, el] of Object.entries(sound.els)) {
+    const a = el.a;
     let target = 0;
     // Past dusk a faint layer of crickets slips in under the scene's own sound, which carries on
     // as it is. Fainter still under the city.
@@ -258,9 +267,10 @@ function tickSound(dt) {
     const city = here === "city";
     if (live) target = mixer.vol * (key === "night" ? 0.1 * n * (city ? 0.5 : 1)
       : key === here ? 0.55 * (1 - 0.1 * n) : 0);
-    a.volume = Math.max(0, Math.min(1, a.volume + (target - a.volume) * k));
+    el.v = Math.max(0, Math.min(1, el.v + (target - el.v) * k));
+    if (el.g) el.g.gain.value = el.v; else a.volume = el.v;
     if (target > 0.001 && a.paused) a.play().catch(() => {});
-    if (target <= 0.001 && a.volume < 0.01 && !a.paused) a.pause();
+    if (target <= 0.001 && el.v < 0.01 && !a.paused) a.pause();
   }
 }
 function setSoundOn(on) {
@@ -269,16 +279,20 @@ function setSoundOn(on) {
   const b = $("#soundBtn");
   b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Sound on" : "Sound off");
   b.innerHTML = on ? ICON_SOUND_ON : ICON_SOUND_OFF;
+  const p = $("#pSound");
+  p.setAttribute("aria-pressed", String(on)); p.setAttribute("aria-label", on ? "Sound on" : "Sound off"); p.innerHTML = b.innerHTML;
   renderMixer();
 }
 function renderMixer() {
   $('[data-mute="amb"]').setAttribute("aria-pressed", String(mixer.amb.mute));
   $("#tl-amb").classList.toggle("silent", !audible());
+  $("#strip").classList.toggle("silent", !audible());
 }
 const ICON_SOUND_OFF = '<svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10l-3.5-3h-2.5z"/><path d="M11 6l3.5 4M14.5 6L11 10" fill="none"/></svg>';
 const ICON_SOUND_ON = '<svg viewBox="0 0 16 16"><path d="M2.5 6h2.5l3.5-3v10l-3.5-3h-2.5z"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.6 3.8a6 6 0 0 1 0 8.4" fill="none"/></svg>';
 function bindMixer() {
   $("#soundBtn").addEventListener("click", () => setSoundOn(!mixer.on));
+  $("#pSound").addEventListener("click", () => { setSoundOn(!mixer.on); if (mixer.on && !state.playing) play(); });
   const vol = $("#volSlider");
   vol.value = mixer.vol;
   vol.addEventListener("input", () => {
@@ -1250,7 +1264,7 @@ addEventListener("pointermove", (e) => {
   const r = canvas.getBoundingClientRect();
   const mx = Math.max(-1.5, Math.min(1.5, ((e.clientX - r.left) / r.width) * 2 - 1));
   const my = Math.max(-1.5, Math.min(1.5, ((e.clientY - r.top) / r.height) * 2 - 1));
-  if (!settings.follow) return;
+  if (!settings.follow || isPhone) return;
   look.tx = mx * 0.4; look.ty = my * 0.25;
 });
 // Panels resize like an editor's: drag the edge between the monitor and the sidebar,
@@ -1377,6 +1391,7 @@ function render(now) {
   look.x += (look.tx - look.x) * k; look.y += (look.ty - look.y) * k;
   tickSound(dt);
   const tSec = (now - t0) / 1000;
+  if (isPhone && settings.follow) { look.tx = 0.34 * Math.sin(tSec * 0.16); look.ty = 0.16 * Math.sin(tSec * 0.11 + 1.3); }
   if (settings.follow) {
     // ease toward the pointer by the shortest way round, never unwinding whole turns
     const ty = look.x + 0.06 * Math.sin(tSec * 0.5);
@@ -1471,7 +1486,8 @@ function renderPhoneCard(clip) {
   bindCard(el);
 }
 function buildStrip() {
-  $("#strip").innerHTML = CLIPS.map((c, i) => `<button class="sc" data-i="${i}" style="background-image:url(${c.thumb})" aria-label="${c.label}"><span>${c.label}</span><i></i></button>`).join("");
+  $("#strip").innerHTML = CLIPS.map((c, i) => `<div class="scol"><button class="sc" data-i="${i}" style="background-image:url(${c.thumb})" aria-label="${c.label}"><span>${c.label}</span><i></i></button>
+    <div class="sa" aria-hidden="true"><span>♪ ${AMB_FOR_SCENE[c.scene] || "window"}</span></div></div>`).join("");
   $("#stripDots").innerHTML = CLIPS.map(() => "<i></i>").join("");
   $$("#strip .sc").forEach((b) => b.addEventListener("click", () => jumpTo(+b.dataset.i)));
 }
@@ -1483,7 +1499,7 @@ function centreStrip(i, smooth) {
   if (!b) return;
   stripTarget = i;
   strip.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - strip.clientWidth / 2, behavior: smooth && !reduceMotion ? "smooth" : "auto" });
-  if (lastShown !== i) { lastShown = i; $("#pbody").scrollTop = 0; }
+  if (lastShown !== i) { lastShown = i; if (smooth && !state.playing && scrollY > 0) scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); }
 }
 function nearestInStrip() {
   const strip = $("#strip"), mid = strip.scrollLeft + strip.clientWidth / 2;

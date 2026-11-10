@@ -618,7 +618,8 @@ void main(){
     for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) c += texture2D(uSrc, vUv + vec2(x, y)*uTexel).rgb;
     c /= 9.;
     float l = lumi(c);
-    gl_FragColor = vec4(c * smoothstep(.74, .95, l), l);
+    // the brightest dithered dots only reach about .8, so the glow starts well below that
+    gl_FragColor = vec4(c * smoothstep(.5, .78, l), l);
   } else if (uMode < 1.5) {                           // separable blur
     vec4 c = texture2D(uSrc, vUv) * .227;
     c += (texture2D(uSrc, vUv + uTexel*1.385) + texture2D(uSrc, vUv - uTexel*1.385)) * .316;

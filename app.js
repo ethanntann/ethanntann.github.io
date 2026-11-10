@@ -727,16 +727,6 @@ function resize() {
 }
 
 // ---------- DOM builders ----------
-function buildCards() {
-  $("#cards").innerHTML = CLIPS.map((c, i) => `
-    <button class="card" data-i="${i}">
-      <span class="thumb" style="background-image:url(${c.thumb})"></span>
-      <span><b>${c.label === "Intro" ? "About" : c.label}</b><span class="d">${c.blurb}</span><span class="tcn">${tc(c.start).slice(3)} · ${c.dur}s</span></span>
-    </button>`).join("");
-  $$(".card").forEach((b) => {
-    b.addEventListener("click", () => jumpTo(+b.dataset.i));
-  });
-}
 
 function buildTimeline() {
   const pct = (s) => (s / VIEW) * 100 + "%";
@@ -755,7 +745,6 @@ function layoutTimeline() {
     const c = CLIPS[+el.dataset.i];
     el.style.left = pct(c.start); el.style.width = `calc(${pct(c.dur)} - 3px)`;
   });
-  $$(".card .tcn").forEach((el, i) => { el.textContent = `${tc(CLIPS[i].start).slice(3)} · ${CLIPS[i].dur}s`; });
   drawRuler(); drawWave();
   if (state.t >= TOTAL) state.t = TOTAL - 0.01;
 }
@@ -928,7 +917,6 @@ function activate(i) {
   setGrade(clip.grade, prev < 0);
   renderOverlay(clip);
   renderInfo(clip);
-  $$(".card").forEach((el) => el.classList.toggle("on", +el.dataset.i === i));
   $$("#nav button").forEach((b) => b.classList.toggle("on", b.dataset.ids.split(" ").includes(clip.id)));
   $$(".clip").forEach((el) => el.classList.toggle("sel", +el.dataset.i === i));
   if (location.hash.slice(1) !== clip.id) history.replaceState(null, "", "#" + clip.id);
@@ -1233,7 +1221,7 @@ function bindControls() {
 }
 
 const ICON_PLAY = '<path d="M4 2.5v11L13 8z"/>', ICON_PAUSE = '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>';
-function play() { state.playing = true; $("#playIcon").innerHTML = ICON_PAUSE; $("#playBtn").setAttribute("aria-label", "Pause"); }
+function play() { endNudge(); state.playing = true; $("#playIcon").innerHTML = ICON_PAUSE; $("#playBtn").setAttribute("aria-label", "Pause"); }
 function pause() { state.playing = false; $("#playIcon").innerHTML = ICON_PLAY; $("#playBtn").setAttribute("aria-label", "Play"); }
 function togglePlay() { state.playing ? pause() : play(); }
 function toggleFull() { $("#monitorPanel").classList.toggle("max"); requestAnimationFrame(resize); }
@@ -1316,6 +1304,24 @@ function bindPanels() {
 
 // Monitor controls get out of the way: they fade after a moment of stillness
 // and come back on pointer movement, hover, focus or a key press.
+// First visit only: a few soft pulses on the play button, so people know the editor responds.
+// Stops for good as soon as they press play or touch the timeline, slider or a clip.
+const nudge = { on: false };
+function startNudge() {
+  if (localStorage.getItem("reel-seen")) return;
+  setTimeout(() => {
+    if (localStorage.getItem("reel-seen") || state.playing) return;
+    nudge.on = true; wake();
+    $("#playBtn").classList.add("nudge");
+    setTimeout(endNudge, 7000);   // three pulses, then it stops on its own
+  }, 2500);
+}
+function endNudge() {
+  safeStore("reel-seen", "1");
+  if (!nudge.on) return;
+  nudge.on = false; $("#playBtn").classList.remove("nudge");
+}
+["#playBtn", "#vslider", ".timeline", "#nav"].forEach((sel) => $(sel)?.addEventListener("pointerdown", endNudge));
 let idleTimer = 0;
 let tabbing = false;
 const lastPointer = { x: -1, y: -1 };
@@ -1331,6 +1337,7 @@ addEventListener("keydown", (e) => { if (e.key === "Tab") tabbing = true; }, tru
 });
 function controlsBusy() {
   const v = $("#viewer");
+  if (nudge.on) return true;                                                    // first-visit pulse is showing
   if (!$("#fxPop").classList.contains("hidden")) return true;                 // effect panel open
   if (document.body.classList.contains("resizing") || document.body.classList.contains("trimming")) return true;
   if (tabbing && v.contains(document.activeElement)) return true;             // keyboard user is on a control
@@ -1439,7 +1446,6 @@ function loop(now) { render(now); requestAnimationFrame(loop); }
 // ---------- boot ----------
 
 // ---------- init ----------
-buildCards();
 bindMenus();
 buildTimeline();
 buildSwatches();
@@ -1447,6 +1453,7 @@ bindControls();
 bindPanels();
 bindMixer();
 wake();
+startNudge();
 const glOk = initGL();
 if (!glOk) $("#viewer").style.background = "radial-gradient(circle at 30% 30%, #3f8a6c, #0d2620)";
 setAmount(1);

@@ -131,14 +131,6 @@ input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bord
 
 /* ---------- Side ---------- */
 .side { flex: 0 0 var(--side-w, 300px); width: var(--side-w, 300px); display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow: auto; padding-bottom: 4px; scrollbar-width: thin; }
-.cards { display: flex; flex-direction: column; gap: 8px; }
-.card { display: flex; gap: 12px; padding: 10px; border-radius: 10px; background: var(--panel2); border: 1px solid var(--line); text-align: left; transition: border-color .15s, background .15s; }
-.card:hover { border-color: var(--line2); background: #171a17; }
-.card.on { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: #161a15; }
-.card .thumb { width: 64px; height: 64px; border-radius: 6px; flex: none; background: #000 center/cover no-repeat; image-rendering: pixelated; }
-.card b { font-size: 15px; font-weight: 600; display: block; margin-bottom: 2px; }
-.card span.d { color: #a7ad9f; font-size: 12.5px; line-height: 1.4; }
-.card .tcn { font: 10px var(--mono); color: var(--dim); display: block; margin-top: 4px; }
 
 .info { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 2px; }
 .info-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -330,7 +322,6 @@ body.resizing canvas { pointer-events: none; }
 .overlay::before { display: none; }
 .overlay { background: linear-gradient(90deg, rgba(0,0,0,.62) 0%, rgba(0,0,0,.25) 48%, transparent 70%); }
 /* thumbnails are frames captured from the monitor */
-.card .thumb { image-rendering: auto; }
 .clip { background: #000 center/cover no-repeat; image-rendering: auto; }
 
 /* ripple trim handles on timeline clips */
@@ -387,8 +378,6 @@ noscript ~ * .tv-back, .tv-back { margin: 0 0 24px; font-size: 14px; }
   .tl-lbl { font-size: 10px; }
   .clip label { font-size: 9px; left: 4px; top: 4px; }
   .clip .trim { width: 14px; }                             /* easier to grab with a finger */
-  .card { padding: 9px; }
-  .card .thumb { width: 56px; height: 56px; }
   .info .meta dt:nth-last-of-type(-n+2), .info .meta dd:nth-last-of-type(-n+2) { display: none; }   /* Source / Grade: editor detail */
   .info [data-fx] { display: none; }
   .win { left: 4vw !important; width: 92vw !important; max-height: 82vh; }
@@ -399,3 +388,11 @@ noscript ~ * .tv-back, .tv-back { margin: 0 0 24px; font-size: 14px; }
 /* display face: the big titles only; body text and the editor UI stay in Inter Tight */
 .card-title { font-family: var(--display); font-weight: 800; letter-spacing: -.04em; line-height: .86; }
 .win-body h2, .text-version h1 { font-family: var(--display); font-weight: 800; letter-spacing: -.03em; }
+
+/* sidebar is just the info panel now */
+.info { border-top: 0; padding-top: 2px; margin-top: 0; }
+
+/* first-visit nudge on the play button */
+@keyframes nudge { 0% { box-shadow: 0 0 0 0 rgba(223,233,189,.55); } 70% { box-shadow: 0 0 0 12px rgba(223,233,189,0); } 100% { box-shadow: 0 0 0 0 rgba(223,233,189,0); } }
+.transport .play.nudge { animation: nudge 2.2s ease-out 3; }
+@media (prefers-reduced-motion: reduce) { .transport .play.nudge { animation: none; outline: 2px solid rgba(223,233,189,.6); outline-offset: 3px; } }

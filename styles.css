@@ -419,7 +419,7 @@ noscript ~ * .tv-back, .tv-back { margin: 0 0 24px; font-size: 14px; }
   body.phone { overflow-x: hidden; overflow-y: auto; }
   body.phone #app { height: auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
   .phone .ph-only { display: flex !important; }
-  .phone .timeline, .phone .side, .phone .transport, .phone .fx-pop { display: none !important; }
+  .phone .timeline, .phone .side, .phone .transport { display: none !important; }
 
   /* top bar: brand, Export, more */
   .phone .topbar { order: 0; flex: none; height: 46px; padding: 0 12px 0 16px; padding-top: env(safe-area-inset-top); box-sizing: content-box; border-bottom: 0; gap: 4px; }
@@ -526,3 +526,26 @@ noscript ~ * .tv-back, .tv-back { margin: 0 0 24px; font-size: 14px; }
 }
 @keyframes sheetIn { from { transform: translateY(100%); } }
 @keyframes fadeIn { from { opacity: 0; } }
+
+/* effects: the panel's sheet header only shows on phones */
+.fx-sheet-head { display: none; }
+@media (max-width: 860px) {
+  .pbar .pfx { width: 34px; height: 34px; font: italic 600 13px var(--mono); color: #cfd3c6; }
+  .pbar .pfx.on { background: var(--panel3); color: var(--accent); }
+  .phone .fx-pop { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: 52vh; max-height: 52dvh; z-index: 40;
+    border-radius: 18px 18px 0 0; border-width: 1px 0 0; padding: 0 18px max(20px, env(safe-area-inset-bottom)); background: rgba(14,16,14,.97);
+    animation: sheetIn .28s cubic-bezier(.2,.8,.2,1); overscroll-behavior: contain; }
+  .phone .fx-sheet-head { display: flex; position: sticky; top: 0; z-index: 1; justify-content: space-between; align-items: center; padding: 14px 0 10px; margin-bottom: 4px; background: rgba(14,16,14,.97); }
+  .phone .fx-sheet-head b { font-size: 15px; }
+  .phone .fx-sheet-head button { color: var(--accent); font-weight: 600; font-size: 14px; }
+  .phone .fx-master small { display: none; }
+  .phone .fx-row { grid-template-columns: 84px 1fr 44px; padding: 7px 0; font-size: 13.5px; }
+  .phone .fx-row output { font-size: 11.5px; }
+  .phone .fx-pop input[type=range] { height: 3px; }
+  .phone .fx-pop input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; }
+  .phone .fx-pop input[type=range]::-moz-range-thumb { width: 22px; height: 22px; }
+  .phone .fx-pop .seg button { padding: 7px 10px; font-size: 12.5px; }
+  .phone .fx-pop .switch { transform: scale(1.25); transform-origin: left center; }
+  .phone .swatch { height: 44px; }
+  .phone .fx-pop .ghost { padding: 14px 0 4px; font-size: 13px; }
+}

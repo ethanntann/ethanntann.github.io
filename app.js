@@ -924,6 +924,7 @@ function showTab(name, force) {
   const open = force ?? pop.classList.contains("hidden");
   pop.classList.toggle("hidden", !open);
   $("#fxBtn").classList.toggle("on", open);
+  $("#pFx").classList.toggle("on", open); $("#pFx").setAttribute("aria-expanded", open);
 }
 
 // ---------- clip switching ----------
@@ -1535,6 +1536,11 @@ function bindPhone() {
     const up = () => { strip.removeEventListener("pointermove", at); strip.removeEventListener("pointerup", up); strip.removeEventListener("pointercancel", up); };
     strip.addEventListener("pointermove", at); strip.addEventListener("pointerup", up); strip.addEventListener("pointercancel", up);
   });
+  $("#pFx").addEventListener("click", (e) => { e.stopPropagation(); showTab("fx"); });
+  document.addEventListener("pointerdown", (e) => {
+    if (isPhone && !$("#fxPop").classList.contains("hidden") && !e.target.closest("#fxPop, #pFx")) showTab("fx", false);
+  });
+  $("#fxDone").addEventListener("click", () => showTab("fx", false));
   // tapping outside a sheet closes it
   $("#windows").addEventListener("click", (e) => { if (isPhone && e.target.id === "windows") $$(".win").forEach((w) => w.remove()); });
   // full screen on a phone has no controls on top: a tap on the picture exits
@@ -1545,6 +1551,7 @@ function applyPhone() {
   isPhone = phoneMQ.matches;
   document.body.classList.toggle("phone", isPhone);
   (isPhone ? $("#pdet") : $(".side")).appendChild($("#info"));
+  (isPhone ? $("#app") : $("#viewer")).appendChild($("#fxPop"));   // on a phone the effects panel is a sheet over the page
   if (isPhone) {
     showTab("fx", false);
     $("#monitorPanel").classList.remove("max");

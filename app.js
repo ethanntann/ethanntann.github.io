@@ -126,7 +126,7 @@ const CLIPS = [
         <li><b>SearchOwl</b>: Backend engineer intern, 2024</li>
         <li><b>CWRU</b>: Medical library assistant, 2025–</li></ul>
         <h4>Also built</h4><ul>
-        <li><b>Massage Chair MCP Controller</b>: reverse-engineered a Bluetooth LE protocol so an AI assistant can run the chair.</li>
+        <li><b>Massage Chair MCP Controller</b>: reverse-engineered a Bluetooth LE protocol so an AI assistant can run the chair. <a href="https://github.com/ethanntann/massage-chair-mcp" target="_blank" rel="noopener">GitHub ↗</a></li>
         <li><b>CYMKO &amp; The Chimera of Antarctica</b>: 3rd Most Innovative Game, ECSE 390 Game Jam.</li></ul>`,
       tags: ["Python", "TypeScript", "Rust", "Java", "C#", "SQL", "React", "Next.js", "FastAPI", "GraphQL", "AWS", "Docker"],
     },
@@ -160,7 +160,7 @@ const CLIPS = [
         <li>Cut recording CPU from 63–112% of a core to about 3% by moving capture onto the GPU.</li></ul></div></div>
       <div class="edl"><span class="edl-n">006</span><div><b>Massage Chair MCP Controller</b> · Bluetooth LE, MCP<span class="edl-tc">Jun – Jul 2026</span><ul>
         <li>Reverse-engineered an undocumented Bluetooth LE protocol by capturing traffic and writing a binary parser.</li>
-        <li>Exposed the chair's controls as Model Context Protocol tools so an AI assistant can run it from plain language.</li></ul></div></div>
+        <li>Exposed the chair's controls as Model Context Protocol tools so an AI assistant can run it from plain language.</li></ul><p class="dim mono"><a href="https://github.com/ethanntann/massage-chair-mcp" target="_blank" rel="noopener">github.com/ethanntann/massage-chair-mcp ↗</a></p></div></div>
       <div class="edl"><span class="edl-n">007</span><div><b>CYMKO &amp; The Chimera of Antarctica</b> · Unity, C#<span class="edl-tc">Apr – Dec 2024</span><ul>
         <li>3rd Most Innovative Game at the ECSE 390 Game Jam; built the platformer's collision and sound systems.</li>
         <li>Led programmers and artists to ship a 2D horror game.</li></ul></div></div>
@@ -1077,7 +1077,8 @@ const MENUS = {
   clip: [["Next clip", () => jumpTo(state.active + 1), "→"], ["Previous clip", () => jumpTo(state.active - 1), "←"], ["Play / pause", () => togglePlay(), "Space"], ["Reset clip lengths", () => resetClipLengths()], "-",
     ...CLIPS.map((c, i) => [c.file, () => jumpTo(i), String(i + 1)])],
   window: [["Resume", () => openClipWindow(CLIPS.find((c) => c.id === "experience"))], ["Gamertaggd on the App Store ↗", () => open("https://apps.apple.com/us/app/gamertaggd/id6789941011", "_blank", "noopener")],
-    ["Salience on GitHub ↗", () => open("https://github.com/ethanntann/salience", "_blank", "noopener")], "-",
+    ["Salience on GitHub ↗", () => open("https://github.com/ethanntann/salience", "_blank", "noopener")],
+    ["Massage Chair MCP on GitHub ↗", () => open("https://github.com/ethanntann/massage-chair-mcp", "_blank", "noopener")], "-",
     ["The story: Gamertaggd", () => openClipWindow(CLIPS.find((c) => c.id === "gamertaggd"))], ["The story: Salience", () => openClipWindow(CLIPS.find((c) => c.id === "salience"))], "-", ["Contact me…", () => WINDOWS.compose()], "-",
     ["Full-screen monitor", () => toggleFull(), "F"], ["Close all windows", () => $$(".win").forEach((w) => w.remove())]],
   settings: () => [

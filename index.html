@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://babyrico.goatcounter.com; media-src 'self'; connect-src 'self' https://babyrico.goatcounter.com; object-src 'none'; base-uri 'self'; form-action 'none'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<link rel="canonical" href="https://ethanntann.github.io/" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/social/icon-32.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="assets/social/icon-512.png" />
+<link rel="apple-touch-icon" href="assets/social/icon-180.png" />
+<meta name="theme-color" content="#0b0c0a" />
+<!-- link previews (LinkedIn, Slack, iMessage, X, Discord) -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://ethanntann.github.io/" />
+<meta property="og:site_name" content="Ethan's Editor" />
+<meta property="og:title" content="Ethan Tan · Solo developer, open to new-grad SWE roles" />
+<meta property="og:description" content="Built Gamertaggd (iOS, live on the App Store) and Salience, a Fortnite auto-clipper that ranks highlights the way you would. CS at Case Western, May 2027." />
+<meta property="og:image" content="https://ethanntann.github.io/assets/social/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Ethan Tan, solo developer: dithered window light on a dark wall" />
+<meta name="twitter:card" content="summary_large_image" />
+<title>Ethan's Editor · Ethan Tan</title>
+<meta name="description" content="Ethan Tan: solo developer open to new-grad SWE roles. Built Gamertaggd (iOS, live on the App Store) and Salience (a Fortnite auto-clipper that learns your taste). CS at Case Western, 2027." />
+<link rel="stylesheet" href="fonts.css?v=1" />
+<link rel="stylesheet" href="styles.css?v=11" />
+<noscript><style>#app, .skip-link { display: none !important; } .text-version { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; clip: auto !important; clip-path: none !important; white-space: normal !important; padding: 40px max(24px, calc(50vw - 360px)); line-height: 1.6; }</style></noscript>
+</head>
+<body>
+
+<a class="skip-link" href="#text-version">Skip to the text version of this portfolio</a>
+
+<!-- A plain-HTML copy of everything on the monitor, for screen readers, search engines and link
+     previews. Hidden on screen (the editor shows the same content); keep it in step with CLIPS in app.js. -->
+<article id="text-version" class="text-version" tabindex="-1" aria-label="Portfolio, text version">
+  <p class="tv-back"><a href="#intro">← Back to the editor</a></p>
+  <header>
+    <h1>Ethan Tan</h1>
+    <p>Solo developer who ships whole products end to end. CS at Case Western, graduating May 2027. Open to new-grad SWE roles anywhere in the US.</p>
+    <p><a href="assets/Ethan-Tan-Resume.pdf">Resume (PDF)</a> · <a href="https://github.com/ethanntann">GitHub</a> · <a href="https://www.linkedin.com/in/ethanntann">LinkedIn</a> · <a href="mailto:ethanntann.dev@gmail.com">ethanntann.dev@gmail.com</a></p>
+  </header>
+
+  <section aria-labelledby="tv-projects">
+    <h2 id="tv-projects">Projects</h2>
+
+    <h3>Gamertaggd</h3>
+    <p>Letterboxd and Strava for games, built and shipped solo: an iOS app, its API, a website and a Windows tracker. Live on the App Store since September 2026.</p>
+    <h4>Why this</h4>
+    <p>I track a lot of my life: workouts on Strava, films on Letterboxd. Games had nothing. When friends, or strangers, get competitive about games, we compare how many we've played, on what, how many we've 100%'d and how many hours we've sunk in, and nobody actually knows. So I built the app I wanted in my pocket: one true record of everything I play that I can pull up and show someone, and that uses the same data to tell me what to play next when I'm in a slump.</p>
+    <h4>Key decisions</h4>
+    <ol>
+      <li>One ID for every game: everything is keyed on IGDB, never a store's ID, so a session from Steam and a rating from the phone land on the same game.</li>
+      <li>Imports that survive a crash: each import is a leased job in a PostgreSQL queue with limited retries and batch writes that are safe to repeat.</li>
+      <li>Blend is built for groups: taste is scored on ratings, genres, shared games and completion habits for any number of players.</li>
+      <li>AI that can't make games up: the model turns a request into filters, candidates come from real data, and it may only pick from them by ID.</li>
+      <li>Trust the server, not the phone: Pro access is checked against RevenueCat on the server, and share pages ship with no client-side JavaScript.</li>
+    </ol>
+    <p><a href="https://apps.apple.com/us/app/gamertaggd/id6789941011">Gamertaggd on the App Store</a> · <a href="https://gamertag.gd">gamertag.gd</a> · <a href="https://github.com/ethanntann/gamertaggd-showcase">Engineering write-up</a></p>
+
+    <h3>Salience</h3>
+    <p>A Fortnite auto-clipper for Windows that ranks highlights the way you would: 97.4% agreement with my own keep/skip ratings, for about $0.003 per 8 seconds of play.</p>
+    <h4>Why this</h4>
+    <p>Clipping tools either save the last 30 seconds when you press a key, which you forget mid-fight, or guess from loud audio. When I measured that on my own footage, a live trigger caught only 5 of the 15 moments I actually kept. A good clip is personal, so Salience looks at every moment after the match and learns what you keep.</p>
+    <h4>Key decisions</h4>
+    <ol>
+      <li>Nothing heavy during play: analysing live cost about 11 fps, so everything waits for the game to close. A ticking clock in the window caused a stutter, found with PresentMon.</li>
+      <li>Look at everything, not just triggers: a vision model describes every 8-second window for about $0.003 each, chosen from 8 models at 1/20 the price of the best.</li>
+      <li>Your taste, measured: a model trained on keep/skip ratings puts 97.4% of kept/skipped pairs in the right order.</li>
+      <li>Keep data local: only gameplay frames leave the PC; audio, transcripts, inputs and ratings stay on it.</li>
+      <li>No game hooks: capture uses the same Windows APIs as any screen recorder, at about 3% CPU.</li>
+    </ol>
+    <p><a href="https://github.com/ethanntann/salience">Salience on GitHub</a></p>
+  </section>
+
+  <section aria-labelledby="tv-experience">
+    <h2 id="tv-experience">Experience</h2>
+    <ul>
+      <li><strong>Gamertaggd</strong>, Founder &amp; Product Engineer (Jun 2026 – present): built and launched a social game-tracking iOS app; designed Blend, a taste-matching algorithm for groups; added subscriptions with a free-trial A/B test; extended tracking to PC with a Rust + Tauri Windows app.</li>
+      <li><strong>Handshake AI Fellowship</strong>, RLHF Model Evaluator (May 2026 – present): wrote adversarial prompts to find where language models fail at multi-step tasks, and ranked responses to produce human preference data.</li>
+      <li><strong>SearchOwl</strong>, Backend Engineer Intern (Mar – Aug 2024): built sign-in for 250+ users on AWS Cognito, replaced manual account creation with one-click OAuth, and built the GraphQL API for account data on AWS Amplify and DynamoDB.</li>
+      <li><strong>Massage Chair MCP Controller</strong> (Jun – Jul 2026): reverse-engineered an undocumented Bluetooth LE protocol and exposed the chair as Model Context Protocol tools.</li>
+      <li><strong>CYMKO &amp; The Chimera of Antarctica</strong> (Apr – Dec 2024): 3rd Most Innovative Game at the ECSE 390 Game Jam; built collision and sound systems and led the team.</li>
+    </ul>
+    <p>Case Western Reserve University: B.A. Computer Science, minors in Japanese and Computer Gaming, graduating May 2027.</p>
+    <p>Languages: Python, TypeScript, JavaScript, Java, C#, Rust, SQL. Frameworks and tools: React, React Native, Expo, Next.js, Node.js, FastAPI, GraphQL, Tauri, PyTorch, FFmpeg, Unity, Docker, AWS, PostgreSQL, Supabase.</p>
+  </section>
+
+  <section aria-labelledby="tv-off">
+    <h2 id="tv-off">Off the clock</h2>
+    <p>Video editing (the reason this site is built like an editor), gaming, making jam games (<a href="https://babyricoo.itch.io/">itch.io</a>), Japanese, photography and bodybuilding.</p>
+  </section>
+
+  <section aria-labelledby="tv-contact">
+    <h2 id="tv-contact">Contact</h2>
+    <p>Open to new-grad software engineering roles from summer 2027, anywhere in the US. Based in Cleveland, open to relocating.</p>
+    <p><a href="mailto:ethanntann.dev@gmail.com">ethanntann.dev@gmail.com</a> · <a href="https://www.linkedin.com/in/ethanntann">LinkedIn</a> · <a href="https://github.com/ethanntann">GitHub</a></p>
+  </section>
+</article>
+
+<div id="app">
+  <header class="topbar">
+    <div class="brand">Ethan's Editor</div>
+    <nav class="menus" aria-label="Menu bar">
+      <button class="menu" data-menu="file" aria-haspopup="menu" aria-expanded="false">File</button>
+      <button class="menu" data-menu="clip" aria-haspopup="menu" aria-expanded="false">Clip</button>
+      <button class="menu" data-menu="export" aria-haspopup="menu" aria-expanded="false">Export</button>
+      <button class="menu" data-menu="window" aria-haspopup="menu" aria-expanded="false">Window</button>
+      <button class="menu" data-menu="settings" aria-haspopup="menu" aria-expanded="false">Settings</button>
+      <button class="menu" data-menu="help" aria-haspopup="menu" aria-expanded="false">Help</button>
+    </nav>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <button data-go="#intro" data-ids="intro">About</button>
+      <button data-go="#gamertaggd" data-ids="gamertaggd salience">Projects</button>
+      <button data-go="#experience" data-ids="experience">Experience</button>
+      <button data-go="#contact" data-ids="contact">Contact</button>
+    </nav>
+    <button class="icon-btn" id="tlBtn" aria-label="Show or hide the timeline" aria-pressed="true" title="Timeline (T)"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M1.5 9.5h13"/></svg></button>
+    <button class="icon-btn" id="sideBtn" aria-label="Show or hide the sidebar" aria-pressed="true" title="Sidebar (\)"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><path d="M10 2.5v11"/></svg></button>
+    <button class="icon-btn" id="helpBtn" aria-label="Keyboard shortcuts" title="Shortcuts (?)">?</button>
+    <span class="mono tc" id="tc">00:00:00:00</span>
+  </header>
+
+  <main class="stage">
+    <section class="monitor" id="monitorPanel">
+      <div class="viewer" id="viewer">
+        <canvas id="gl"></canvas>
+        <div class="overlay" id="overlay"></div>
+        <div class="vslider" id="vslider" title="Drag for night ↔ day" role="slider" tabindex="0" aria-label="Time of day" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+          <svg class="vs-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3"/></svg>
+          <div class="vs-track"><div class="vs-fill" id="vsFill"></div><div class="vs-knob" id="vsKnob"></div></div>
+          <svg class="vs-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 9.5A5.5 5.5 0 1 1 6.5 3a4.5 4.5 0 0 0 6.5 6.5z"/></svg>
+          <span class="vs-val mono" id="vsVal">DAY</span>
+        </div>
+
+        <div class="transport">
+          <button data-act="prev" aria-label="Previous clip" title="Previous clip (←)"><svg viewBox="0 0 16 16"><path d="M3 3v10M13 3 6 8l7 5z"/></svg></button>
+          <button data-act="play" id="playBtn" class="play" aria-label="Play" title="Play / pause (Space)"><svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2.5v11L13 8z"/></svg></button>
+          <button data-act="next" aria-label="Next clip" title="Next clip (→)"><svg viewBox="0 0 16 16"><path d="M13 3v10M3 3l7 5-7 5z"/></svg></button>
+          <span class="sep"></span>
+          <span class="sound-wrap"><button id="soundBtn" class="sound-btn" aria-pressed="false" aria-label="Sound off" title="Sound (off by default)"></button><input type="range" id="volSlider" class="vol" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"></span>
+          <button data-act="fx" id="fxBtn" class="fx-toggle" aria-label="Effect controls" title="Effect controls">fx</button>
+          <button data-act="full" aria-label="Full screen" title="Full screen (F)"><svg viewBox="0 0 16 16"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+        </div>
+
+        <div class="fx-pop hidden" id="fxPop">
+          <label class="fx-row fx-master"><span>Effects</span><span class="switch"><input type="checkbox" id="fx_on" checked><i></i></span><output id="o_on">On</output><small class="dim mono">B to compare before and after</small></label>
+          <div class="fx-title"><span class="fx-badge">fx</span> Dither <span class="dim">— Ordered</span></div>
+          <label class="fx-row"><span>Amount</span><input type="range" id="fxAmount" min="0" max="1" step="0.01" value="1"><output id="oAmount">100%</output></label>
+          <label class="fx-row"><span>Cell size</span><input type="range" id="fxPixel" min="1" max="8" step="1" value="3"><output id="oPixel">3px</output></label>
+          <label class="fx-row"><span>Levels</span><input type="range" id="fxLevels" min="2" max="8" step="1" value="3"><output id="oLevels">3</output></label>
+          <div class="fx-row"><span>Pattern</span>
+            <div class="seg" id="fxPattern"><button data-v="0" class="on">Bayer 8</button><button data-v="1">Bayer 4</button><button data-v="2">Halftone</button><button data-v="3">Noise</button></div>
+          </div>
+          <div id="noiseRows" hidden>
+            <div class="fx-row"><span>Noise</span><div class="seg" id="fxNoise"><button data-v="0" class="on" title="Even, with a faint diagonal weave">Weave</button><button data-v="1" title="Very even, like fine screen-print">R2</button><button data-v="2" title="Random grain: organic and busy">White</button></div></div>
+            <label class="fx-row"><span>Boil</span><input type="range" id="fxBoil" min="0" max="12" step="0.2" value="0.8"><output id="oBoil">0.8/s</output></label>
+          </div>
+          <div class="fx-title" style="margin-top:12px"><span class="fx-badge">fx</span> Film</div>
+          <label class="fx-row"><span>Letterbox</span><span class="switch"><input type="checkbox" id="fx_lb"><i></i></span><output id="o_lb">Off</output></label>
+          <label class="fx-row"><span>Halation</span><input type="range" id="fx_hal" min="0" max="1" step="0.01" value="0.5"><output id="o_hal">50%</output></label>
+          <label class="fx-row"><span>Diffusion</span><input type="range" id="fx_diff" min="0" max="1" step="0.01" value="0.15"><output id="o_diff">15%</output></label>
+          <label class="fx-row"><span>Aberration</span><input type="range" id="fx_ca" min="0" max="1" step="0.01" value="0"><output id="o_ca">0%</output></label>
+          <label class="fx-row"><span>Vignette</span><input type="range" id="fx_vig" min="0" max="1" step="0.01" value="0.35"><output id="o_vig">35%</output></label>
+          <label class="fx-row"><span>Light leak</span><input type="range" id="fx_leak" min="0" max="1" step="0.01" value="0"><output id="o_leak">0%</output></label>
+          <label class="fx-row"><span>Film grain</span><input type="range" id="fxGrain" min="0" max="0.25" step="0.01" value="0.07"><output id="oGrain">7%</output></label>
+          <div class="fx-title" style="margin-top:12px"><span class="fx-badge">fx</span> Grade</div>
+          <div class="swatches" id="swatches"></div>
+          <button class="ghost" id="fxReset">Reset effects</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="splitter" id="sideSplit" role="separator" aria-orientation="vertical" aria-label="Resize sidebar (double-click to hide)" title="Drag to resize · double-click to hide"></div>
+    <aside class="side">
+      <div class="cards" id="cards"></div>
+      <div class="info" id="info"></div>
+    </aside>
+  </main>
+
+  <div class="tl-resize" id="tlResize" role="separator" aria-orientation="horizontal" aria-label="Resize timeline (double-click to hide)" title="Drag to resize · double-click to hide"></div>
+  <section class="timeline">
+    <div class="tl-ruler-row"><span class="tl-lbl"></span><div class="ruler" id="ruler"></div></div>
+    <div class="tl-row"><span class="tl-lbl mono">V1</span><div class="track" id="trackV1"></div></div>
+    <div class="tl-row a" id="tl-amb"><span class="tl-lbl tl-hd mono" title="Ambience"><span>A1</span><button data-mute="amb" aria-pressed="false" aria-label="Mute ambience" title="Mute ambience">M</button></span><div class="track audio" id="trackA1"><canvas id="wave"></canvas></div></div>
+    <div class="tl-hit" id="tracks"><div class="playhead" id="playhead"><i></i></div></div>
+  </section>
+
+  <div id="windows"></div>
+  <div id="dropdown" class="dropdown hidden" role="menu"></div>
+</div>
+
+<!-- Analytics: GoatCounter, cookie-free and privacy-friendly. Dashboard: https://babyrico.goatcounter.com
+     It ignores visits from localhost, so only the live site is counted. -->
+<script data-goatcounter="https://babyrico.goatcounter.com/count" async src="https://gc.zgo.at/count.v4.js" crossorigin="anonymous" integrity="sha384-nRw6qfbWyJha9LhsOtSb2YJDyZdKvvCFh0fJYlkquSFjUxp9FVNugbfy8q1jdxI+"></script>
+<script src="app.js?v=19"></script>
+</body>
+</html>

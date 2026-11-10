@@ -51,7 +51,7 @@ const CLIPS = [
       links: [["App Store ↗", "https://apps.apple.com/us/app/gamertaggd/id6789941011"], ["gamertag.gd ↗", "https://gamertag.gd"], ["The story", "open:gamertaggd"]],
     },
     info: {
-      title: "Gamertaggd", sub: "Social game tracking · solo build", icon: "assets/gtg-icon.png",
+      title: "Gamertaggd", sub: "Social game tracking app", icon: "assets/gtg-icon.png",
       meta: { Role: "Founder & Product Engineer", Dates: "Jun 2026 – present", Status: "Live on the App Store", Platforms: "iOS · Web · Windows", Website: `<a href="https://gamertag.gd" target="_blank" rel="noopener">gamertag.gd ↗</a>`, GitHub: `<a href="https://github.com/ethanntann/gamertaggd-showcase" target="_blank" rel="noopener">gamertaggd-showcase ↗</a>` },
       body: `<p>Four parts that work together: an iOS app, a backend API that imports libraries and matches games, a website with shareable Blend and recap pages, and a Windows tracker that logs PC sessions automatically.</p>
       <ul><li>Steam → IGDB fuzzy matching, so every game has one canonical ID.</li><li>Crash-safe imports on a leased PostgreSQL job queue.</li><li>AI-built lists that can only pick real games, chosen by ID.</li></ul>`,
@@ -80,14 +80,14 @@ const CLIPS = [
     blurb: "Keeps the Fortnite clips you would have kept, without costing you frames.",
     card: {
       title: ["Salience"],
-      sub: "A Fortnite auto-clipper built by a competitive gamer for competitive gamers: it keeps the clips you would have kept (97.4% agreement with my own ratings) and stays out of your frames while you play.",
+      sub: "A Fortnite auto-clipper built by a competitive gamer for competitive gamers: it keeps the clips you would have kept.",
       links: [["GitHub ↗", "https://github.com/ethanntann/salience"], ["The story", "open:salience"]],
     },
     info: {
       title: "Salience", sub: "Auto-clipper that learns your taste",
       meta: { Role: "Solo developer", Dates: "Jul 2026 – present", Capture: "WGC → NVENC, ~3% CPU", Ranking: "Logistic taste model" },
       body: `<p>Live triggers caught only 5 of the 15 moments I actually kept. Salience looks at every moment after the match ends, so nothing heavy runs while you play.</p>
-      <ul><li>Records on the GPU’s video encoder at about 3% of a CPU core, down from 63–112%, so it costs you no frames.</li><li>Picked a vision model that matched the best one on 8 of 9 hard windows at 1/20 the price.</li><li>Cold start: 20 liked clips take a new player from 78% to 85%.</li></ul>`,
+      <ul><li>Keeps the clips you would have kept: 97.4% agreement with my own keep/skip ratings.</li><li>Records on the GPU’s video encoder at about 3% of a CPU core, down from 63–112%, so it costs you no frames.</li><li>Picked a vision model that matched the best one on 8 of 9 hard windows at 1/20 the price.</li><li>Cold start: 20 liked clips take a new player from 78% to 85%.</li></ul>`,
       tags: ["Python", "PyTorch", "FFmpeg", "NVENC", "Vision LLM", "Whisper", "pywebview", "Cloudflare Workers"],
     },
     notes: `<div class="story">
@@ -337,7 +337,7 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduceMotion = false;   // the site animates for everyone; Parallax can be switched off in Settings
 // Viewer settings, kept between visits. Following the pointer is off by default for reduced-motion users.
 const settings = loadPrefs("reel-settings", { follow: !reduceMotion, glow: true });
 function saveSettings() { safeStore("reel-settings", JSON.stringify(settings)); }
@@ -793,7 +793,7 @@ function bindTrim(h) {
     h.addEventListener("pointercancel", end); h.addEventListener("lostpointercapture", end);
   });
 }
-function resetClipLengths() { CLIPS.forEach((c) => { c.dur = c.dur0; }); relayout(); VIEW = TOTAL; layoutTimeline(); }
+function resetClipLengths() { CLIPS.forEach((c) => { c.dur = c.dur0; }); relayout(); VIEW = TOTAL; layoutTimeline(); buildStrip(); markStrip(state.active, false); }
 
 function drawRuler() {
   const ruler = $("#ruler");
@@ -941,7 +941,7 @@ function activate(i) {
   renderOverlay(clip);
   renderInfo(clip);
   $$("#nav button, #ptabs button").forEach((b) => b.classList.toggle("on", b.dataset.ids.split(" ").includes(clip.id)));
-  if (isPhone) centreStrip(i, prev >= 0);
+  if (isPhone) markStrip(i, prev >= 0);
   $$(".clip").forEach((el) => el.classList.toggle("sel", +el.dataset.i === i));
   if (location.hash.slice(1) !== clip.id) history.replaceState(null, "", "#" + clip.id);
   track("clip:" + clip.id);
@@ -1125,7 +1125,6 @@ function setDaylight(v) {
   const d = state.daylight;
   $("#vsVal").textContent = d > 0.8 ? "DAY" : d > 0.55 ? "GOLD" : d > 0.3 ? "DUSK" : "NIGHT";
   $("#vslider").setAttribute("aria-valuenow", Math.round(d * 100));
-  $("#pDay").setAttribute("aria-pressed", d >= TAKE_AT); $("#pNight").setAttribute("aria-pressed", d < TAKE_AT);
   if (CLIPS[state.active]?.id === "intro" && takeFor(d) !== state.take) setTake(takeFor(d), true);
 }
 function toggleDither() { setAmount(state.amount > 0.5 ? 0 : 1); }
@@ -1482,44 +1481,25 @@ const mmss = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(M
 
 function renderPhoneCard(clip) {
   const i = clip.info, el = $("#pcard");
+  $("#pdet").hidden = clip.id === "intro";
   el.innerHTML = `<div class="pkick rise" style="--i:0">${i.icon ? `<img src="${i.icon}" alt="">` : ""}<span>${i.sub}</span></div>${cardBody(clip, 1)}`;
   bindCard(el);
 }
+// The phone timeline: clips laid out from the left at their real lengths, one ambience
+// track underneath, and a playhead that moves across them. Tap or drag to scrub.
 function buildStrip() {
-  $("#strip").innerHTML = CLIPS.map((c, i) => `<div class="scol"><button class="sc" data-i="${i}" style="background-image:url(${c.thumb})" aria-label="${c.label}"><span>${c.label}</span><i></i></button>
-    <div class="sa" aria-hidden="true"><span>♪ ${AMB_FOR_SCENE[c.scene] || "window"}</span></div></div>`).join("");
-  $("#stripDots").innerHTML = CLIPS.map(() => "<i></i>").join("");
-  $$("#strip .sc").forEach((b) => b.addEventListener("click", () => jumpTo(+b.dataset.i)));
+  const pct = (v) => (v / TOTAL) * 100 + "%";
+  $("#strip").innerHTML = CLIPS.map((c, i) => `<button class="sc" data-i="${i}" style="left:${pct(c.start)};width:calc(${pct(c.dur)} - 3px);background-image:url(${c.thumb})" aria-label="${c.label}"><span>${c.label}</span></button>`).join("")
+    + `<div class="sa" aria-hidden="true"><span>♪ Ambience</span></div><div class="sph" id="sph" aria-hidden="true"></div>`;
 }
-let stripTarget = null, stripTimer = 0, lastShown = -1;
-function centreStrip(i, smooth) {
-  const strip = $("#strip"), b = strip.children[i];
+let lastShown = -1;
+function markStrip(i, user) {
   $$("#strip .sc").forEach((el, j) => el.classList.toggle("on", j === i));
-  $$("#stripDots i").forEach((el, j) => el.classList.toggle("on", j === i));
-  if (!b) return;
-  stripTarget = i;
-  strip.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - strip.clientWidth / 2, behavior: smooth && !reduceMotion ? "smooth" : "auto" });
-  if (lastShown !== i) { lastShown = i; if (smooth && !state.playing && scrollY > 0) scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); }
-}
-function nearestInStrip() {
-  const strip = $("#strip"), mid = strip.scrollLeft + strip.clientWidth / 2;
-  let best = 0, bd = Infinity;
-  [...strip.children].forEach((b, j) => { const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = j; } });
-  return best;
+  if (lastShown !== i) { lastShown = i; if (user && !state.playing && scrollY > 0) scrollTo({ top: 0, behavior: "smooth" }); }
 }
 function tickPhone() {
-  const c = CLIPS[state.active];
   $("#ptc").textContent = mmss(state.t) + " / " + mmss(TOTAL);
-  const on = $("#strip .sc.on");
-  if (on && c) on.style.setProperty("--p", Math.max(0, Math.min(1, (state.t - c.start) / c.dur)));
-}
-// ease the light instead of jumping, so night and day cross-fade like the slider
-let lightAnim = 0;
-function lightTo(v) {
-  cancelAnimationFrame(lightAnim);
-  const from = state.daylight, t0 = performance.now(), dur = reduceMotion ? 1 : 900;
-  const step = (now) => { const k = Math.min(1, (now - t0) / dur); setDaylight(lerp(from, v, ease(k))); if (k < 1) lightAnim = requestAnimationFrame(step); };
-  lightAnim = requestAnimationFrame(step);
+  $("#sph").style.left = (state.t / TOTAL) * 100 + "%";
 }
 function sheetSwipe(win) {
   const bar = $(".win-bar", win);
@@ -1542,19 +1522,19 @@ function bindPhone() {
   $$("#pbar [data-pact]").forEach((b) => b.addEventListener("click", () => ({
     prev: () => jumpTo(state.active - 1), next: () => jumpTo(state.active + 1), play: togglePlay,
   })[b.dataset.pact]()));
-  $("#pDay").addEventListener("click", () => lightTo(Math.max(START_LIGHT, state.daylight >= TAKE_AT ? state.daylight : 0)));
-  $("#pNight").addEventListener("click", () => lightTo(0.15));
   $$("#ptabs button").forEach((b) => b.addEventListener("click", () => jumpTo(CLIPS.findIndex((c) => c.id === b.dataset.go.slice(1)))));
-  // swiping the strip: once it settles, the clip under the playhead becomes the active one
-  $("#strip").addEventListener("scroll", () => {
-    clearTimeout(stripTimer);
-    stripTimer = setTimeout(() => {
-      const i = nearestInStrip();
-      if (stripTarget != null) { if (i === stripTarget) stripTarget = null; return; }
-      if (i !== state.active) jumpTo(i);
-    }, 140);
-  }, { passive: true });
-  ["touchstart", "pointerdown", "wheel"].forEach((ev) => $("#strip").addEventListener(ev, () => { stripTarget = null; }, { passive: true }));
+  // scrub: tap or drag sideways across the strip; vertical drags still scroll the page
+  const strip = $("#strip");
+  strip.addEventListener("pointerdown", (e) => {
+    const at = (ev) => {
+      const r = strip.getBoundingClientRect();
+      state.t = Math.max(0, Math.min(TOTAL - 0.001, ((ev.clientX - r.left) / r.width) * TOTAL));
+      activate(clipAt(state.t));
+    };
+    at(e);
+    const up = () => { strip.removeEventListener("pointermove", at); strip.removeEventListener("pointerup", up); strip.removeEventListener("pointercancel", up); };
+    strip.addEventListener("pointermove", at); strip.addEventListener("pointerup", up); strip.addEventListener("pointercancel", up);
+  });
   // tapping outside a sheet closes it
   $("#windows").addEventListener("click", (e) => { if (isPhone && e.target.id === "windows") $$(".win").forEach((w) => w.remove()); });
   // full screen on a phone has no controls on top: a tap on the picture exits
@@ -1568,7 +1548,8 @@ function applyPhone() {
   if (isPhone) {
     showTab("fx", false);
     $("#monitorPanel").classList.remove("max");
-    if (state.active >= 0) { renderPhoneCard(CLIPS[state.active]); centreStrip(state.active, false); }
+    buildStrip();
+    if (state.active >= 0) { renderPhoneCard(CLIPS[state.active]); markStrip(state.active, false); }
   }
   requestAnimationFrame(resize);
 }
@@ -1593,6 +1574,6 @@ setAmount(1);
 setDaylight(START_LIGHT);
 const startIdx = Math.max(0, CLIPS.findIndex((c) => c.id === location.hash.slice(1)));
 jumpTo(startIdx);
-if (isPhone) centreStrip(state.active, false);
+if (isPhone) markStrip(state.active, false);
 resize();
 requestAnimationFrame(loop);

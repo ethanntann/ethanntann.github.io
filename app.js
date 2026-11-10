@@ -1,14 +1,6 @@
 /* Ethan Tan: a portfolio built as a non-linear editor.
    Edit CLIPS below to change content. Scenes: 0/3 window light, 2 dunes, 4 skyline, 5 dunes + Gamertaggd gem, 6 dunes + Salience in/out mark.
    The 3D marks turn to follow the pointer. A bloom pass makes the whites glow. */
-
-// The site moved to ethan-tan.dev. Old ethanntann.github.io links go there, to the same clip.
-// (GitHub Pages can't send a server redirect.) Stopping here keeps the editor from starting first.
-if (location.hostname.endsWith("github.io")) {
-  location.replace("https://ethan-tan.dev/" + location.hash);
-  throw new Error("Moved to https://ethan-tan.dev/");
-}
-
 const EMAIL = "ethanntann.dev@gmail.com";
 const GITHUB = "https://github.com/ethanntann";
 const LINKEDIN = "https://www.linkedin.com/in/ethanntann";

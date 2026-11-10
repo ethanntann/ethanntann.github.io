@@ -24,7 +24,7 @@
 <title>Ethan's Editor · Ethan Tan</title>
 <meta name="description" content="Ethan Tan: solo developer open to new-grad SWE roles. Built Gamertaggd (iOS, live on the App Store) and Salience (a Fortnite auto-clipper that learns your taste). CS at Case Western, 2027." />
 <link rel="stylesheet" href="fonts.css?v=1" />
-<link rel="stylesheet" href="styles.css?v=12" />
+<link rel="stylesheet" href="styles.css?v=17" />
 <noscript><style>#app, .skip-link { display: none !important; } .text-version { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; clip: auto !important; clip-path: none !important; white-space: normal !important; padding: 40px max(24px, calc(50vw - 360px)); line-height: 1.6; }</style></noscript>
 </head>
 <body>
@@ -37,7 +37,7 @@
   <p class="tv-back"><a href="#intro">← Back to the editor</a></p>
   <header>
     <h1>Ethan Tan</h1>
-    <p>Solo developer who ships whole products end to end. CS at Case Western, graduating May 2027. Open to new-grad SWE roles anywhere in the US.</p>
+    <p>Solo developer building products end to end. I’m a current CS student at Case Western Reserve University, graduating May 2027, and open to new-grad SWE roles anywhere in the US.</p>
     <p><a href="assets/Ethan-Tan-Resume.pdf">Resume (PDF)</a> · <a href="https://github.com/ethanntann">GitHub</a> · <a href="https://www.linkedin.com/in/ethanntann">LinkedIn</a> · <a href="mailto:ethanntann.dev@gmail.com">ethanntann.dev@gmail.com</a></p>
   </header>
 
@@ -50,25 +50,27 @@
     <p>I track a lot of my life: workouts on Strava, films on Letterboxd. Games had nothing. When friends, or strangers, get competitive about games, we compare how many we've played, on what, how many we've 100%'d and how many hours we've sunk in, and nobody actually knows. So I built the app I wanted in my pocket: one true record of everything I play that I can pull up and show someone, and that uses the same data to tell me what to play next when I'm in a slump.</p>
     <h4>Key decisions</h4>
     <ol>
-      <li>One ID for every game: everything is keyed on IGDB, never a store's ID, so a session from Steam and a rating from the phone land on the same game.</li>
-      <li>Imports that survive a crash: each import is a leased job in a PostgreSQL queue with limited retries and batch writes that are safe to repeat.</li>
-      <li>Blend is built for groups: taste is scored on ratings, genres, shared games and completion habits for any number of players.</li>
-      <li>AI that can't make games up: the model turns a request into filters, candidates come from real data, and it may only pick from them by ID.</li>
-      <li>Trust the server, not the phone: Pro access is checked against RevenueCat on the server, and share pages ship with no client-side JavaScript.</li>
+      <li>One record across every store. Steam, Epic and GOG all number the same game differently, so everything is keyed on one catalog (IGDB). Hours from your PC and a rating from your phone add up on the same game.</li>
+      <li>Automatic logging. Start a game on Steam and Gamertaggd picks it up and times the session live on your iPhone Lock Screen. For games that don't track their own playtime, a small Windows tracker logs it for you, even offline. Hours were the number nobody knew, so you never have to type them in.</li>
+      <li>Your whole library in one tap. An empty app is a dead app, so the first thing you can do is import your whole Steam library in one tap. Imports run as jobs that retry safely, so a big library never half-imports or duplicates.</li>
+      <li>Made to be shown. The point is pulling it up for someone. Blends, which compare your taste with a friend's, and recaps are shareable links that open as a proper preview in any chat, no app needed.</li>
+      <li>What to play next, from your own games. The backlog planner suggests games you already own based on your mood, and AI-built lists can only pick real games, so a suggestion is always something you can actually play.</li>
     </ol>
-    <p><a href="https://apps.apple.com/us/app/gamertaggd/id6789941011">Gamertaggd on the App Store</a> · <a href="https://gamertag.gd">gamertag.gd</a> · <a href="https://github.com/ethanntann/gamertaggd-showcase">Engineering write-up</a></p>
+    <p><a href="https://apps.apple.com/us/app/gamertaggd/id6789941011">Gamertaggd on the App Store</a> · <a href="https://gamertag.gd">gamertag.gd</a> · <a href="https://github.com/ethanntann/gamertaggd-showcase">GitHub</a></p>
 
     <h3>Salience</h3>
-    <p>A Fortnite auto-clipper for Windows that ranks highlights the way you would: 97.4% agreement with my own keep/skip ratings, for about $0.003 per 8 seconds of play.</p>
+    <p>A Fortnite auto-clipper built by a competitive gamer for competitive gamers: it keeps the clips you would have kept (97.4% agreement with my own ratings) and stays out of your frames while you play.</p>
     <h4>Why this</h4>
-    <p>Clipping tools either save the last 30 seconds when you press a key, which you forget mid-fight, or guess from loud audio. When I measured that on my own footage, a live trigger caught only 5 of the 15 moments I actually kept. A good clip is personal, so Salience looks at every moment after the match and learns what you keep.</p>
+    <p>Clipping a moment always pulled me out of it. Hitting a hotkey or saying “clip that” meant stepping out of a funny moment with friends, out of the immersion of the game, or out of flow in the middle of a hard play. It’s like carrying a camera everywhere, waiting for the right shot instead of living the moment.</p>
+    <p>So Salience does the watching for me. It records in the background and looks back over every moment once the match is over, so I can just play. It also had to beat the usual triggers: when I measured them on my own footage, a live trigger caught only 5 of the 15 moments I actually kept. And a good clip is personal, so it learns what you keep.</p>
+    <p>I’m a competitive gamer and a former budget gamer with a potato PC, so performance was everything. Squeezing every last frame out of a new PC was a ritual, and at some point I realised part of what I was fighting was bloatware: software quietly slowing the hardware down. So Salience had one rule: you should never notice it’s running while you play.</p>
     <h4>Key decisions</h4>
     <ol>
-      <li>Nothing heavy during play: analysing live cost about 11 fps, so everything waits for the game to close. A ticking clock in the window caused a stutter, found with PresentMon.</li>
-      <li>Look at everything, not just triggers: a vision model describes every 8-second window for about $0.003 each, chosen from 8 models at 1/20 the price of the best.</li>
-      <li>Your taste, measured: a model trained on keep/skip ratings puts 97.4% of kept/skipped pairs in the right order.</li>
-      <li>Keep data local: only gameplay frames leave the PC; audio, transcripts, inputs and ratings stay on it.</li>
-      <li>No game hooks: capture uses the same Windows APIs as any screen recorder, at about 3% CPU.</li>
+      <li>Invisible while you play. Recording runs on the graphics card’s built-in video encoder, at about 3% of one CPU core (my first version took 63–112%). Every bit of analysis waits until the game closes, because doing it live cost about 11 fps, and no competitive player gives up 11 fps.</li>
+      <li>Look at everything, not just triggers. A vision model describes every 8-second window for about $0.003 each, chosen from 8 models at 1/20 the price of the best.</li>
+      <li>Your taste, measured. A model trained on your keep/skip ratings puts 97.4% of kept/skipped pairs in the right order.</li>
+      <li>Keep data local. Only gameplay frames leave the PC. Audio, transcripts, inputs and ratings stay on it.</li>
+      <li>No game hooks. Capture uses the same Windows APIs as any screen recorder, so anti-cheat sees nothing unusual, and there’s no OBS to set up.</li>
     </ol>
     <p><a href="https://github.com/ethanntann/salience">Salience on GitHub</a></p>
   </section>
@@ -88,7 +90,8 @@
 
   <section aria-labelledby="tv-off">
     <h2 id="tv-off">Off the clock</h2>
-    <p>Video editing (the reason this site is built like an editor), gaming, making jam games (<a href="https://babyricoo.itch.io/">itch.io</a>), Japanese, photography and bodybuilding.</p>
+    <p>Off the clock, I enjoy going to the gym for powerlifting and bodybuilding. I love playing video games and also make games on the side, and I like to get my hands dirty building PCs. The rest of the time, I enjoy shooting content, editing videos, travelling and learning new languages like Japanese! I believe technology is a vessel for documentation, which is why I create content, use apps like Letterboxd and Strava, and build apps like Gamertaggd.</p>
+    <p>Video editing: <a href="https://www.youtube.com/c/babyrico">YouTube</a>. Gaming: currently playing Fortnite. Making games: <a href="https://babyricoo.itch.io/">itch.io</a>. Japanese: N4 level. Bodybuilding: going for a bench PR.</p>
   </section>
 
   <section aria-labelledby="tv-contact">
@@ -192,6 +195,6 @@
 <!-- Analytics: GoatCounter, cookie-free and privacy-friendly. Dashboard: https://babyrico.goatcounter.com
      It ignores visits from localhost, so only the live site is counted. -->
 <script data-goatcounter="https://babyrico.goatcounter.com/count" async src="https://gc.zgo.at/count.v4.js" crossorigin="anonymous" integrity="sha384-nRw6qfbWyJha9LhsOtSb2YJDyZdKvvCFh0fJYlkquSFjUxp9FVNugbfy8q1jdxI+"></script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>

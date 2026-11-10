@@ -29,15 +29,15 @@ const CLIPS = [
     blurb: "Solo developer. Open to new-grad SWE roles, 2027.",
     card: {
       title: ["Ethan", "Tan"],
-      sub: "Solo developer who ships whole products end to end. CS at Case Western, graduating May 2027. Open to new-grad SWE roles anywhere in the US.",
+      sub: "Solo developer building products end to end. I’m a current CS student at Case Western Reserve University, graduating May 2027, and open to new-grad SWE roles anywhere in the US.",
       links: [["Projects →", "#gamertaggd"], ["Resume ↗", RESUME_PDF]],
     },
     info: {
       title: "Ethan Tan", sub: "Solo developer · Graduating May 2027",
       meta: { "Looking for": "New-grad SWE roles", Graduating: "May 2027, Case Western", Based: "Cleveland · open to relocating in the US", Shipped: "Gamertaggd (App Store)", Building: "Salience" },
       body: `<p>I build complete products on my own, from the database to the last animation: a social iOS app with its own API, website and Windows tracker, and a Windows app that records, describes and ranks gameplay.</p>
-      <p>I like hard engineering problems with a person at the end of them: crash-safe imports, a 1-second stutter found with PresentMon, a ranking model that learns one player's taste.</p>
-      <h4>Off the clock</h4><p>Video editing, gaming, Japanese, photography and bodybuilding. Flip the About clip to <b>Off the clock</b> to see more.</p>`,
+      <p>I like hard engineering problems with a person at the end of them: crash-safe imports, recording a game at 3% CPU so it costs no frames, a ranking model that learns one player's taste.</p>
+      <h4>Off the clock</h4><p>The gym, gaming, making games, shooting and editing video, travel and Japanese. Flip the About clip to <b>Off the clock</b> to see more.</p>`,
       tags: ["TypeScript", "React Native", "Swift", "Rust", "Python", "Node.js", "Video"],
     },
   },
@@ -52,7 +52,7 @@ const CLIPS = [
     },
     info: {
       title: "Gamertaggd", sub: "Social game tracking · solo build", icon: "assets/gtg-icon.png",
-      meta: { Role: "Founder & Product Engineer", Dates: "Jun 2026 – present", Status: "Live on the App Store", Platforms: "iOS · Web · Windows", Repo: `<a href="https://github.com/ethanntann/gamertaggd-showcase" target="_blank" rel="noopener">showcase ↗</a>` },
+      meta: { Role: "Founder & Product Engineer", Dates: "Jun 2026 – present", Status: "Live on the App Store", Platforms: "iOS · Web · Windows", Website: `<a href="https://gamertag.gd" target="_blank" rel="noopener">gamertag.gd ↗</a>`, GitHub: `<a href="https://github.com/ethanntann/gamertaggd-showcase" target="_blank" rel="noopener">gamertaggd-showcase ↗</a>` },
       body: `<p>Four parts that work together: an iOS app, a backend API that imports libraries and matches games, a website with shareable Blend and recap pages, and a Windows tracker that logs PC sessions automatically.</p>
       <ul><li>Steam → IGDB fuzzy matching, so every game has one canonical ID.</li><li>Crash-safe imports on a leased PostgreSQL job queue.</li><li>AI-built lists that can only pick real games, chosen by ID.</li></ul>`,
       tags: ["React Native", "Expo", "Swift · ActivityKit", "Node · Hono", "Supabase", "Rust · Tauri", "RevenueCat", "Claude API"],
@@ -64,43 +64,45 @@ const CLIPS = [
       <p>So I built the app I wanted in my pocket: one true record of everything I play that I can pull up and show someone, and that uses the same data to tell me what to play next when I'm in a slump.</p>
       <h4>Key decisions</h4>
       <ol class="decisions">
-        <li><b>One ID for every game.</b> Everything is keyed on IGDB, never a store's ID, so a session from Steam and a rating from the phone land on the same game.</li>
-        <li><b>Imports that survive a crash.</b> Each import is a leased job in a PostgreSQL queue with limited retries and batch writes that are safe to repeat, so nothing is lost or duplicated.</li>
-        <li><b>Blend is built for groups.</b> Taste is scored on ratings, genres, shared games and completion habits for any number of players, even though the app compares two today.</li>
-        <li><b>AI that can't make games up.</b> The model turns a request into filters, the candidates come from real data, and it may only pick from them by ID.</li>
-        <li><b>Trust the server, not the phone.</b> Pro access is checked against RevenueCat on the server, and share pages ship with no client-side JavaScript.</li>
+        <li><b>One record across every store.</b> Steam, Epic and GOG all number the same game differently, so everything is keyed on one catalog (IGDB). Hours from your PC and a rating from your phone add up on the same game.</li>
+        <li><b>Automatic logging.</b> Start a game on Steam and Gamertaggd picks it up and times the session live on your iPhone Lock Screen. For games that don't track their own playtime, a small Windows tracker logs it for you, even offline. Hours were the number nobody knew, so you never have to type them in.</li>
+        <li><b>Your whole library in one tap.</b> An empty app is a dead app, so the first thing you can do is import your whole Steam library in one tap. Imports run as jobs that retry safely, so a big library never half-imports or duplicates.</li>
+        <li><b>Made to be shown.</b> The point is pulling it up for someone. Blends, which compare your taste with a friend's, and recaps are shareable links that open as a proper preview in any chat, no app needed.</li>
+        <li><b>What to play next, from your own games.</b> The backlog planner suggests games you already own based on your mood, and AI-built lists can only pick real games, so a suggestion is always something you can actually play.</li>
       </ol>
       <img class="shot" src="assets/gtg-hero.png" alt="Gamertaggd on iPhone">
-      <div class="btn-row"><a class="btn primary" href="https://apps.apple.com/us/app/gamertaggd/id6789941011" target="_blank" rel="noopener">App Store ↗</a><a class="btn" href="https://github.com/ethanntann/gamertaggd-showcase" target="_blank" rel="noopener">Engineering write-up ↗</a></div>
+      <div class="btn-row"><a class="btn primary" href="https://apps.apple.com/us/app/gamertaggd/id6789941011" target="_blank" rel="noopener">App Store ↗</a><a class="btn" href="https://github.com/ethanntann/gamertaggd-showcase" target="_blank" rel="noopener">GitHub ↗</a></div>
     </div>`,
   },
   {
     id: "salience", file: "02_SALIENCE.mp4", label: "Salience", dur: 9, scene: 6, grade: "cyan",
     thumb: "assets/thumbs/salience.jpg", color: "#22476e",
-    blurb: "Ranks Fortnite highlights like you would. 97.4% on my ratings.",
+    blurb: "Keeps the Fortnite clips you would have kept, without costing you frames.",
     card: {
       title: ["Salience"],
-      sub: "A Fortnite auto-clipper that ranks highlights the way you would: 97.4% agreement with my own keep/skip ratings, for about $0.003 per 8 seconds of play.",
+      sub: "A Fortnite auto-clipper built by a competitive gamer for competitive gamers: it keeps the clips you would have kept (97.4% agreement with my own ratings) and stays out of your frames while you play.",
       links: [["GitHub ↗", "https://github.com/ethanntann/salience"], ["The story", "open:salience"]],
     },
     info: {
       title: "Salience", sub: "Auto-clipper that learns your taste",
-      meta: { Role: "Solo developer", Dates: "Jul 2026 – present", Capture: "WGC → NVENC, ~3% CPU", Ranking: "Logistic taste model", Tests: "649 + 14, CI on push" },
+      meta: { Role: "Solo developer", Dates: "Jul 2026 – present", Capture: "WGC → NVENC, ~3% CPU", Ranking: "Logistic taste model" },
       body: `<p>Live triggers caught only 5 of the 15 moments I actually kept. Salience looks at every moment after the match ends, so nothing heavy runs while you play.</p>
-      <ul><li>Found a 1 s stutter with PresentMon: a clock in the UI was pulling Fortnite off its fast display path.</li><li>Picked a vision model that matched the best one on 8 of 9 hard windows at 1/20 the price.</li><li>Cold start: 20 liked clips take a new player from 78% to 85%.</li></ul>`,
+      <ul><li>Records on the GPU’s video encoder at about 3% of a CPU core, down from 63–112%, so it costs you no frames.</li><li>Picked a vision model that matched the best one on 8 of 9 hard windows at 1/20 the price.</li><li>Cold start: 20 liked clips take a new player from 78% to 85%.</li></ul>`,
       tags: ["Python", "PyTorch", "FFmpeg", "NVENC", "Vision LLM", "Whisper", "pywebview", "Cloudflare Workers"],
     },
     notes: `<div class="story">
       <h2>Salience</h2><p class="dim">A Fortnite auto-clipper that keeps the clips you would have kept.</p>
       <h4>Why this</h4>
-      <p>Clipping tools either save the last 30 seconds when you press a key, which you forget mid-fight, or guess from loud audio. When I measured that on my own footage, a live trigger caught only <b>5 of the 15</b> moments I actually kept. And a good clip is personal, so Salience looks at every moment after the match and learns what <i>you</i> keep.</p>
+      <p>Clipping a moment always pulled me out of it. Hitting a hotkey or saying “clip that” meant stepping out of a funny moment with friends, out of the immersion of the game, or out of flow in the middle of a hard play. It’s like carrying a camera everywhere, waiting for the right shot instead of living the moment.</p>
+      <p>So Salience does the watching for me. It records in the background and looks back over every moment once the match is over, so I can just play. It also had to beat the usual triggers: when I measured them on my own footage, a live trigger caught only <b>5 of the 15</b> moments I actually kept. And a good clip is personal, so it learns what <i>you</i> keep.</p>
+      <p>I’m a competitive gamer and a former budget gamer with a potato PC, so performance was everything. Squeezing every last frame out of a new PC was a ritual, and at some point I realised part of what I was fighting was bloatware: software quietly slowing the hardware down. So Salience had one rule: you should never notice it’s running while you play.</p>
       <h4>Key decisions</h4>
       <ol class="decisions">
-        <li><b>Nothing heavy during play.</b> Analysing live cost about 11 fps, so everything waits for the game to close. Even a ticking clock in the window caused a stutter; I found it with PresentMon.</li>
+        <li><b>Invisible while you play.</b> Recording runs on the graphics card’s built-in video encoder, at about 3% of one CPU core (my first version took 63–112%). Every bit of analysis waits until the game closes, because doing it live cost about 11 fps, and no competitive player gives up 11 fps.</li>
         <li><b>Look at everything, not just triggers.</b> A vision model describes every 8-second window for about $0.003 each, chosen from 8 models at 1/20 the price of the best.</li>
         <li><b>Your taste, measured.</b> A model trained on your keep/skip ratings puts 97.4% of kept/skipped pairs in the right order.</li>
         <li><b>Keep data local.</b> Only gameplay frames leave the PC. Audio, transcripts, inputs and ratings stay on it.</li>
-        <li><b>No game hooks.</b> Capture uses the same Windows APIs as any screen recorder, at about 3% CPU, so anti-cheat sees nothing unusual.</li>
+        <li><b>No game hooks.</b> Capture uses the same Windows APIs as any screen recorder, so anti-cheat sees nothing unusual, and there’s no OBS to set up.</li>
       </ol>
       <img class="shot" src="assets/sal-session.png" alt="A session's highlights in Salience">
       <div class="btn-row"><a class="btn primary" href="https://github.com/ethanntann/salience" target="_blank" rel="noopener">View on GitHub ↗</a></div>
@@ -112,7 +114,7 @@ const CLIPS = [
     blurb: "Case Western CS '27. Handshake AI, SearchOwl, game jams.",
     card: {
       title: ["Experience"], small: true,
-      sub: "Built AWS Cognito sign-in for SearchOwl's 250+ users. Evaluating language models in the Handshake AI Fellowship. Founder of Gamertaggd.",
+      sub: "<p class=\"credits-kicker\">What I’d bring to your team</p><ul class=\"credits\"><li><b>I own features end to end</b><span>Gamertaggd is an iOS app, API, website and Windows tracker I designed, built and shipped alone. Hand me a problem and I’ll carry it from idea to release.</span></li><li><b>I build things people rely on</b><span>At SearchOwl I put sign-in for 250+ users on AWS Cognito and replaced manual account setup with one-click OAuth, in production, on a real team.</span></li><li><b>I measure before I decide</b><span>With Salience I tested live triggers (5 of 15 moments caught) and 8 vision models before choosing one at 1/20 the cost. My calls come with numbers.</span></li><li><b>I care how it feels</b><span>Salience records at about 3% CPU so players never lose a frame. Performance and polish aren’t an afterthought for me.</span></li><li><b>I learn unfamiliar systems fast</b><span>I reverse-engineered an undocumented Bluetooth protocol to put a massage chair under an AI assistant’s control.</span></li></ul>",
       links: [["Resume ↗", RESUME_PDF], ["GitHub ↗", GITHUB]],
     },
     info: {
@@ -186,7 +188,7 @@ const CLIPS = [
     info: {
       title: "Contact", sub: "Roll credits",
       meta: { Email: `<a href="mailto:${EMAIL}">${EMAIL}</a>`, LinkedIn: `<a href="${LINKEDIN}" target="_blank" rel="noopener">in/ethanntann ↗</a>`, GitHub: `<a href="${GITHUB}" target="_blank" rel="noopener">ethanntann ↗</a>`, Based: "Cleveland · open to relocating", "Looking for": "New-grad SWE, 2027" },
-      body: `<p>Happy to walk through the code behind any of these projects.</p>`,
+      body: ``,
       tags: [],
     },
   },
@@ -194,15 +196,15 @@ const CLIPS = [
 
 // Off the clock: the About clip's second take.
 const ITCH = "https://babyricoo.itch.io/";
+const YOUTUBE = "https://www.youtube.com/c/babyrico";
 const PERSONAL = {
-  sub: "Off the clock I track almost everything: training on Strava, films on Letterboxd, and now every game I play on Gamertaggd. The rest of the time I'm cutting video, studying Japanese, shooting photos or in the gym.",
+  sub: "Off the clock, I enjoy going to the gym for powerlifting and bodybuilding. I love playing video games and also make games on the side, and I like to get my hands dirty building PCs. The rest of the time, I enjoy shooting content, editing videos, travelling and learning new languages like Japanese! I believe technology is a vessel for documentation, which is why I create content, use apps like Letterboxd and Strava, and build apps like Gamertaggd.",
   hobbies: [
-    ["Video editing", "the reason this site is built like an editor"],
-    ["Gaming", "the reason Gamertaggd exists"],
+    ["Video editing", `my channel: <a href="${YOUTUBE}" target="_blank" rel="noopener">YouTube ↗</a>`],
+    ["Gaming", "currently playing Fortnite"],
     ["Making games", `jam games on <a href="${ITCH}" target="_blank" rel="noopener">itch.io ↗</a>`],
-    ["Japanese", "my minor at Case Western"],
-    ["Photography", "shooting stills for fun"],
-    ["Bodybuilding", "logged on Strava, like everything else"],
+    ["Japanese", "N4 level"],
+    ["Bodybuilding", "going for a bench PR"],
   ],
 };
 
@@ -889,10 +891,8 @@ function renderInfo(clip) {
     <div class="btn-row">
       ${clip.notes ? `<button class="btn primary" data-go="open:${clip.id}">${clip.id === "experience" ? "Open resume" : "The story"}</button>` : ""}
       ${clip.id === "contact" ? `<a class="btn primary" href="mailto:${EMAIL}">Email me</a>` : ""}
-      <button class="btn" data-fx>Effect controls</button>
     </div>`;
   bindLinks($("#info"));
-  $("[data-fx]", $("#info")).addEventListener("click", () => showTab("fx", true));
 }
 
 function showTab(name, force) {
@@ -978,7 +978,7 @@ function openClipWindow(clip) {
 }
 
 const WINDOWS = {
-  shortcuts: () => openWindow({ id: "keys", title: "Keyboard Shortcuts", w: 360, html: `<h2>How this works</h2><p class="dim">The site is built like an editor. Each clip on the timeline is part of my work: click one, scrub the playhead, or press play. The slider on the monitor moves from day to night, and <b>fx</b> regrades the picture.</p><h4>Shortcuts</h4>
+  shortcuts: () => openWindow({ id: "keys", title: "Shortcuts & info", w: 360, html: `<h2>How this works</h2><p class="dim">The site is built like an editor. Each clip on the timeline is part of my work: click one, scrub the playhead, or press play. The slider on the monitor moves from day to night, and <b>fx</b> regrades the picture.</p><h4>Shortcuts</h4>
     <div class="keys">
       <span class="kbd">Space</span><span>Play / pause</span>
       <span class="kbd">J K L</span><span>Rewind · pause · play</span>
@@ -992,11 +992,7 @@ const WINDOWS = {
       <span class="kbd">F</span><span>Full-screen monitor</span>
       <span class="kbd">Esc</span><span>Close window</span>
     </div>
-    <h4>Sound</h4><p class="dim small">Off until you press the speaker, and plays while the sequence plays. Ambience via Freesound:
-      <a href="https://freesound.org/s/568246/" target="_blank" rel="noopener">room tone with open window and birds</a> by Garuda1982 (CC BY 4.0),
-      <a href="https://freesound.org/s/156414/" target="_blank" rel="noopener">wind in cactus spines, Atacama</a> by felix.blume (CC0),
-      <a href="https://freesound.org/s/440621/" target="_blank" rel="noopener">city night hum 04</a> by klankbeeld (CC BY 4.0),
-      <a href="https://freesound.org/s/550924/" target="_blank" rel="noopener">Greece campsite evening, crickets and cicadas</a> by Profispiesser (CC0). Trimmed and looped.</p>` }),
+    <h4>Sound credits</h4><ul class="credits-list"><li><a href="https://freesound.org/s/568246/" target="_blank" rel="noopener">Room tone with open window and birds</a><span>Garuda1982 · CC BY 4.0</span></li><li><a href="https://freesound.org/s/156414/" target="_blank" rel="noopener">Wind in cactus spines, Atacama</a><span>felix.blume · CC0</span></li><li><a href="https://freesound.org/s/440621/" target="_blank" rel="noopener">City night hum 04</a><span>klankbeeld · CC BY 4.0</span></li><li><a href="https://freesound.org/s/550924/" target="_blank" rel="noopener">Greece campsite evening, crickets</a><span>Profispiesser · CC0</span></li></ul>` }),
   compose: () => {
     const win = openWindow({ id: "compose", title: "New message — Ethan Tan", w: 460, html: `
       <form class="compose" novalidate>
@@ -1064,7 +1060,7 @@ const MENUS = {
     [`${panels.sideOff ? " " : "✓ "}Show sidebar`, () => toggleSide(), "\\"],
     [`${panels.tlOff ? " " : "✓ "}Show timeline`, () => toggleTimeline(), "T"],
     ["Reset panel sizes", () => resetPanels()]],
-  help: [["How this works & shortcuts", () => WINDOWS.shortcuts(), "?"]],
+  help: [["Shortcuts & info", () => WINDOWS.shortcuts(), "?"]],
 };
 function openMenu(btn) {
   const dd = $("#dropdown");

@@ -35,8 +35,8 @@ const CLIPS = [
     info: {
       title: "Ethan Tan", sub: "Solo developer · Graduating May 2027",
       meta: { "Looking for": "New-grad SWE roles", Graduating: "May 2027, Case Western", Based: "Cleveland · open to relocating in the US", Shipped: "Gamertaggd (App Store)", Building: "Salience" },
-      body: `<p>I build complete products on my own, from the database to the last animation: a social iOS app with its own API, website and Windows tracker, and a Windows app that records, describes and ranks gameplay.</p>
-      <p>I like hard engineering problems with a person at the end of them: crash-safe imports, recording a game at 3% CPU so it costs no frames, a ranking model that learns one player's taste.</p>
+      body: `<h4>How I work</h4><p><b>I build what I’d use every day.</b> Gamertaggd logs my own games; Salience clips my own matches. If I wouldn’t open it daily, I don’t build it.</p><p><b>I check results before I trust them.</b> My first design for Salience trained a small local model to copy a large vision model. Its precision and recall looked great, but it was copying a teacher that had learned from very little data, almost all of it mine: overfitting dressed up as accuracy. I scrapped it for a simpler pipeline whose results I could actually verify.</p><p><b>I protect the core idea.</b> It’s easy to keep adding features. A game log shouldn’t turn into a game, and a jam game should sell one mechanic, not five.</p>
+      <p>I like hard problems I’ll feel the benefit of tomorrow.</p>
       <h4>Off the clock</h4><p>The gym, gaming, making games, shooting and editing video, travel and Japanese. Flip the About clip to <b>Off the clock</b> to see more.</p>`,
       tags: ["TypeScript", "React Native", "Swift", "Rust", "Python", "Node.js", "Video"],
     },
@@ -357,7 +357,7 @@ const FILM_DEFAULT = { lb: false, hal: 0.5, diff: 0.15, ca: 0, vig: 0.35, leak: 
 const START_LIGHT = 0.66;   // golden hour: warm, but still on the Work take
 const state = {
   t: 0.01, playing: false, active: -1,
-  amount: 1, daylight: START_LIGHT, bloom: 1.2, noise: 0, boil: 0.8, bypass: false, take: "work", takeDay: null, ...FILM_DEFAULT, pixel: 3, levels: 3, grain: 0.07, pattern: 0,
+  amount: 1, daylight: START_LIGHT, bloom: 0.9, noise: 0, boil: 0.8, bypass: false, take: "work", takeDay: null, ...FILM_DEFAULT, pixel: 3, levels: 3, grain: 0.07, pattern: 0,
   pal: GRADES.lagoon.c.map(hex), palFrom: null, palTo: null, palStart: 0,
   prevScene: 0, transStart: -10,
 };
@@ -1443,12 +1443,14 @@ function render(now, draw = true) {
   const tSec = (now - t0) / 1000;
   if (isPhone && settings.follow) { look.tx = 0.34 * Math.sin(tSec * 0.16); look.ty = 0.16 * Math.sin(tSec * 0.11 + 1.3); }
   if (settings.follow) {
-    // ease toward the pointer by the shortest way round, never unwinding whole turns
-    const ty = look.x + 0.06 * Math.sin(tSec * 0.5);
+    // The marks turn toward the pointer itself, and faster than the scene leans, so they feel
+    // like the object in front. Shortest way round, never unwinding whole turns.
+    const km = 1 - Math.exp(-dt * 6);
+    const ty = look.tx + 0.06 * Math.sin(tSec * 0.5);
     const tau = Math.PI * 2;
     const goal = ty + tau * Math.round((mark.y - ty) / tau);
-    mark.y += (goal - mark.y) * k;
-    mark.x += (look.y + 0.04 * Math.sin(tSec * 0.37) - mark.x) * k;
+    mark.y += (goal - mark.y) * km;
+    mark.x += (look.ty + 0.04 * Math.sin(tSec * 0.37) - mark.x) * km;
   } else {
     mark.y += dt * 0.45 * Math.min(1, (mark.spinIn = Math.min(1, (mark.spinIn || 0) + dt)));
     mark.x += (-0.25 + 0.08 * Math.sin(tSec * 0.6) - mark.x) * k;

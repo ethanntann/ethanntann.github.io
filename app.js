@@ -381,6 +381,8 @@ uniform vec2 uRes; uniform float uTime;
 uniform float uScene0; uniform float uScene1; uniform float uMix;
 uniform float uNoise; uniform float uBoil;
 uniform float uAmount; uniform float uExposure; uniform float uPixel; uniform float uLevels; uniform float uPattern; uniform float uGrain;
+uniform float uLow;     // 1: drawn at one fragment per dither dot, so gl_FragCoord is the dot itself
+uniform float uDirect;  // 1: straight to the screen (no post pass), so grain and falloff are added here
 uniform vec3 uC0; uniform vec3 uC1; uniform vec3 uC2;
 uniform float uD; uniform vec2 uRot; uniform vec2 uMark;
 
@@ -564,7 +566,7 @@ float scene(float id, vec2 uv, float t){
 }
 
 void main(){
-  vec2 cell = floor(gl_FragCoord.xy / uPixel);
+  vec2 cell = uLow > .5 ? floor(gl_FragCoord.xy) : floor(gl_FragCoord.xy / uPixel);
   vec2 cuv = (cell + .5)*uPixel / uRes;
   vec2 uv = uAmount > .01 ? cuv : vUv;
   float t = uTime;
@@ -598,8 +600,10 @@ void main(){
   vec3 cont = pal(lum);
   vec3 col = mix(cont, dith, uAmount);
 
-  col += (hash(gl_FragCoord.xy + fract(t*7.)*91.) - .5) * uGrain;
-  vec2 vv = vUv - .5; col *= 1. - dot(vv, vv)*.75;
+  if (uDirect > .5) {
+    col += (hash(gl_FragCoord.xy + fract(t*7.)*91.) - .5) * uGrain;
+    vec2 vv = vUv - .5; col *= 1. - dot(vv, vv)*.75;
+  }
   gl_FragColor = vec4(col, 1.);
 }`;
 
@@ -611,7 +615,11 @@ varying vec2 vUv;
 uniform sampler2D uSrc; uniform sampler2D uGlow; uniform vec2 uTexel; uniform float uMode; uniform float uBloom;
 uniform float uTime; uniform float uAspect; uniform vec3 uTint;
 uniform float uLB; uniform float uHal; uniform float uDiff; uniform float uCA; uniform float uVig; uniform float uLeak; uniform float uKick;
+uniform vec2 uFull; uniform vec2 uSceneSize; uniform float uCell; uniform float uGrain;
 float lumi(vec3 c){ return dot(c, vec3(.299, .587, .114)); }
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
+// the scene texture holds one texel per dither dot: find the dot this screen position falls in
+vec3 sceneAt(vec2 uv){ vec2 c = floor(uv*uFull/uCell); return texture2D(uSrc, (c + .5)/uSceneSize).rgb; }
 void main(){
   if (uMode < .5) {                                   // bright pass; alpha carries the whole frame's brightness for diffusion
     vec3 c = vec3(0.);
@@ -629,7 +637,10 @@ void main(){
     vec2 d = vUv - .5;
     // chromatic aberration grows toward the edges
     vec2 off = d * uCA * .012;
-    vec3 c = vec3(texture2D(uSrc, vUv + off).r, texture2D(uSrc, vUv).g, texture2D(uSrc, vUv - off).b);
+    vec3 c = vec3(sceneAt(vUv + off).r, sceneAt(vUv).g, sceneAt(vUv - off).b);
+    // film grain and the scene's own falloff, per screen pixel
+    c += (hash(gl_FragCoord.xy + fract(uTime*7.)*91.) - .5) * uGrain;
+    c *= 1. - dot(d, d)*.75;
     vec4 g = texture2D(uGlow, vUv);
     c += g.rgb * uBloom + g.rgb*g.rgb * uBloom * .8;
     // halation: film's red-orange halo around the brightest light
@@ -651,12 +662,12 @@ void main(){
   }
 }`;
 let post, PU = {}, fbo = null, lbNow = 0;
-function makeTarget(w, h) {
+function makeTarget(w, h, filter = gl.LINEAR) {
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   const fb = gl.createFramebuffer();
@@ -668,9 +679,19 @@ function makeTarget(w, h) {
 function sizeTargets() {
   if (!gl || !post) return;
   const w = canvas.width, h = canvas.height, qw = Math.max(1, w >> 2), qh = Math.max(1, h >> 2);
-  if (fbo && fbo.scene.w === w && fbo.scene.h === h) return;
-  if (fbo) [fbo.scene, fbo.a, fbo.b].forEach((t) => { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fb); });
-  fbo = { scene: makeTarget(w, h), a: makeTarget(qw, qh), b: makeTarget(qw, qh) };
+  if (fbo && fbo.w === w && fbo.h === h) return;
+  if (fbo) [fbo.scene, fbo.a, fbo.b].forEach((t) => t && dropTarget(t));
+  fbo = { w, h, scene: null, a: makeTarget(qw, qh), b: makeTarget(qw, qh) };
+}
+function dropTarget(t) { gl.deleteTexture(t.tex); gl.deleteFramebuffer(t.fb); }
+// The scene is the expensive part, and every pixel of a dither dot shows the same value, so it's
+// drawn once per dot (a 6×6-pixel dot on a 2× screen is 36 times less work) and scaled up after.
+// With the dither off it needs every pixel, so then it's drawn at full size.
+function sceneTarget(cell) {
+  const w = Math.ceil(canvas.width / cell), h = Math.ceil(canvas.height / cell);
+  if (fbo.scene && fbo.scene.w === w && fbo.scene.h === h) return fbo.scene;
+  if (fbo.scene) dropTarget(fbo.scene);
+  return (fbo.scene = makeTarget(w, h, gl.NEAREST));
 }
 function postPass(target, src, mode, texel, glow) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.fb : null);
@@ -705,14 +726,14 @@ function initGL() {
   const loc = gl.getAttribLocation(prog, "p");
   gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   ["uRes","uTime","uScene0","uScene1","uMix",
-   "uNoise","uBoil","uAmount","uExposure","uPixel","uLevels","uPattern","uGrain","uC0","uC1","uC2","uD","uRot","uMark"].forEach((n) => U[n] = gl.getUniformLocation(prog, n));
+   "uNoise","uBoil","uAmount","uExposure","uPixel","uLevels","uPattern","uGrain","uC0","uC1","uC2","uD","uRot","uMark","uLow","uDirect"].forEach((n) => U[n] = gl.getUniformLocation(prog, n));
   blank.tex = makeTex();
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
   const pv = sh(gl.VERTEX_SHADER, VERT), pf = sh(gl.FRAGMENT_SHADER, POST);
   if (pv && pf) {
     post = gl.createProgram(); gl.attachShader(post, pv); gl.attachShader(post, pf); gl.linkProgram(post);
     if (gl.getProgramParameter(post, gl.LINK_STATUS)) {
-      ["uSrc", "uGlow", "uTexel", "uMode", "uBloom", "uTime", "uAspect", "uTint", "uLB", "uHal", "uDiff", "uCA", "uVig", "uLeak", "uKick"].forEach((n) => PU[n] = gl.getUniformLocation(post, n));
+      ["uSrc", "uGlow", "uTexel", "uMode", "uBloom", "uTime", "uAspect", "uTint", "uLB", "uHal", "uDiff", "uCA", "uVig", "uLeak", "uKick", "uFull", "uSceneSize", "uCell", "uGrain"].forEach((n) => PU[n] = gl.getUniformLocation(post, n));
       gl.useProgram(post); gl.uniform1i(PU.uSrc, 2); gl.uniform1i(PU.uGlow, 3);
     } else post = null;
   }
@@ -1414,7 +1435,7 @@ function wake() {
 }
 ["pointermove", "pointerdown", "keydown", "focusin", "wheel"].forEach((ev) => addEventListener(ev, wake, { passive: true }));
 
-function render(now) {
+function render(now, draw = true) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   const k = 1 - Math.exp(-dt * 2.5);
   look.x += (look.tx - look.x) * k; look.y += (look.ty - look.y) * k;
@@ -1450,7 +1471,7 @@ function render(now) {
   if (isPhone) tickPhone();
   $("#playhead").style.left = (state.t / VIEW) * 100 + "%";
 
-  if (gl && prog) {
+  if (gl && prog && draw) {
     const mix = Math.min(1, (now - state.transStart) / (TRANS * 1000));
     const cur = CLIPS[state.active], prev = CLIPS[state.prevIdx ?? state.active];
     gl.uniform1f(U.uScene0, (mix >= 1 ? cur : prev).scene);
@@ -1460,7 +1481,11 @@ function render(now) {
     gl.uniform1f(U.uMix, mix >= 1 ? 0 : ease(mix));
     fxMix += ((state.bypass ? 0 : 1) - fxMix) * (1 - Math.exp(-dt * 10));
     gl.uniform1f(U.uAmount, state.amount * fxMix);
-    gl.uniform1f(U.uPixel, Math.max(1, Math.round(state.pixel * dpr)));
+    const px = Math.max(1, Math.round(state.pixel * dpr));
+    const low = !!(post && fbo) && state.amount * fxMix > 0.01;   // dither on: one fragment per dot
+    gl.uniform1f(U.uPixel, px);
+    gl.uniform1f(U.uLow, low ? 1 : 0);
+    gl.uniform1f(U.uDirect, post && fbo ? 0 : 1);
     gl.uniform1f(U.uLevels, state.levels);
     gl.uniform1f(U.uPattern, state.pattern);
     gl.uniform1f(U.uNoise, state.noise); gl.uniform1f(U.uBoil, state.boil);
@@ -1474,10 +1499,15 @@ function render(now) {
     gl.uniform2f(U.uRot, look.x, look.y);
     gl.uniform2f(U.uMark, mark.y, mark.x);
     if (post && fbo) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.scene.fb);
-      gl.viewport(0, 0, fbo.scene.w, fbo.scene.h);
+      const cell = low ? px : 1, scene = sceneTarget(cell);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, scene.fb);
+      gl.viewport(0, 0, scene.w, scene.h);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.useProgram(post);
+      gl.uniform2f(PU.uFull, canvas.width, canvas.height);
+      gl.uniform2f(PU.uSceneSize, scene.w, scene.h);
+      gl.uniform1f(PU.uCell, cell);
+      gl.uniform1f(PU.uGrain, state.grain * fxMix);
       gl.uniform1f(PU.uBloom, (settings.glow ? state.bloom : 0) * fxMix);
       lbNow += ((state.lb && !state.bypass ? 1 : 0) - lbNow) * (1 - Math.exp(-dt * 6));
       gl.uniform1f(PU.uTime, (now - t0) / 1000);
@@ -1487,10 +1517,10 @@ function render(now) {
       gl.uniform1f(PU.uCA, state.ca * fxMix); gl.uniform1f(PU.uVig, state.vig * fxMix); gl.uniform1f(PU.uLeak, state.leak * fxMix);
       gl.uniform1f(PU.uKick, mix >= 1 ? 0 : Math.sin(Math.PI * mix));
       const qx = 1 / fbo.a.w, qy = 1 / fbo.a.h;
-      postPass(fbo.a, fbo.scene, 0, [1 / fbo.scene.w * 1.5, 1 / fbo.scene.h * 1.5]);
+      postPass(fbo.a, scene, 0, [1.5 / canvas.width, 1.5 / canvas.height]);
       postPass(fbo.b, fbo.a, 1, [qx, 0]);
       postPass(fbo.a, fbo.b, 1, [0, qy]);
-      postPass(null, fbo.scene, 2, [0, 0], fbo.a);
+      postPass(null, scene, 2, [0, 0], fbo.a);
       gl.useProgram(prog);
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1499,7 +1529,17 @@ function render(now) {
     }
   }
 }
-function loop(now) { render(now); requestAnimationFrame(loop); }
+// Drawing only happens as often as it's useful: up to 60 frames a second while you're on the page
+// (a 120 Hz screen would otherwise ask for twice that), 15 when the window isn't focused, and none
+// while the monitor is scrolled out of view. Playback, the clock and the sound keep running.
+let lastTick = -1e9, monitorOnScreen = true;
+function loop(now) {
+  requestAnimationFrame(loop);
+  const fps = monitorOnScreen && document.hasFocus() ? 60 : 15;
+  if (now - lastTick < 1000 / fps - 4) return;
+  lastTick = now;
+  render(now, monitorOnScreen);
+}
 
 // ---------- phone layout ----------
 // On a phone the editor is stacked like a mobile video editor: the monitor on top, a control
@@ -1610,4 +1650,5 @@ const startIdx = Math.max(0, CLIPS.findIndex((c) => c.id === location.hash.slice
 jumpTo(startIdx);
 if (isPhone) markStrip(state.active, false);
 resize();
+new IntersectionObserver(([e]) => { monitorOnScreen = e.isIntersecting; }).observe($("#monitorPanel"));
 requestAnimationFrame(loop);

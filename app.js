@@ -34,7 +34,7 @@ const CLIPS = [
     },
     info: {
       title: "Ethan Tan", sub: "Solo developer · Graduating May 2027",
-      meta: { "Looking for": "New-grad SWE roles", Graduating: "May 2027, Case Western", Based: "Cleveland · open to relocating in the US", Shipped: "Gamertaggd (App Store)", Building: "Salience" },
+      meta: { "Looking for": "New-grad SWE roles", Graduating: "May 2027, Case Western", Based: "Cleveland · open to relocating in the US", "Working on": "Gamertaggd, Salience" },
       body: `<h4>How I work</h4><p><b>I build what I’d use every day.</b> Gamertaggd logs my own games; Salience clips my own matches. When I’m the user, I notice every rough edge.</p><p><b>I check results before I trust them.</b> My first design for Salience trained a small local model to copy a large vision model. Its precision and recall looked great, but it was copying a teacher that had learned from very little data, almost all of it mine: overfitting dressed up as accuracy. I scrapped it for a simpler pipeline whose results I could actually verify.</p><p><b>I protect the core idea.</b> It’s easy to keep adding features. A game log shouldn’t turn into a game, and a jam game should sell one mechanic, not five.</p>
       <p>I like hard problems I’ll feel the benefit of tomorrow.</p>
       <h4>Off the clock</h4><p>The gym, gaming, making games, shooting and editing video, travel and Japanese. Flip the About clip to <b>Off the clock</b> to see more.</p>`,

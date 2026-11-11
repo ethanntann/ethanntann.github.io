@@ -1176,6 +1176,15 @@ function bindControls() {
     vs.addEventListener("pointermove", set); vs.addEventListener("pointerup", up);
   });
   vs.addEventListener("wheel", (e) => { e.preventDefault(); setDaylight(state.daylight - e.deltaY * 0.002); }, { passive: false });
+  // The clip's text scrolls from anywhere on the monitor, not only when the pointer is over a line
+  // of it (the overlay lets clicks through to the scene, so it can't catch the wheel itself).
+  $("#viewer").addEventListener("wheel", (e) => {
+    if (e.target.closest("#overlay, #vslider, .fx-pop, .transport")) return;   // those scroll or use the wheel themselves
+    const o = $("#overlay");
+    if (o.scrollHeight <= o.clientHeight + 1) return;
+    e.preventDefault();
+    o.scrollTop += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * o.clientHeight : e.deltaY;
+  }, { passive: false });
   vs.addEventListener("keydown", (e) => {
     if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); e.stopPropagation(); setDaylight(state.daylight + (e.key === "ArrowUp" ? 0.05 : -0.05)); }
   });
